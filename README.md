@@ -1,0 +1,2 @@
+# SkyrimModManager
+Skyrim Modules Manager
