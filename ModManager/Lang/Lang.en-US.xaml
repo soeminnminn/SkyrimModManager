@@ -1,0 +1,19 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:System="clr-namespace:System;assembly=mscorlib">
+	
+	<!--
+		@summary:	English (US) language file
+		@author:	Zack Loveless
+	-->
+	
+	<!-- App and Window Strings -->
+	<System:String x:Key="AppNameString">Skyrim Mods Manager</System:String>
+    <System:String x:Key="MainWindowTitleString">Skyrim Mods Manager</System:String>
+	<System:String x:Key="AboutWindowTitleString">About</System:String>
+	
+	<!-- Menu Strings -->
+	<System:String x:Key="FileMenuHeaderString">File</System:String>
+	<System:String x:Key="SaveMenuItemString">Save</System:String>
+	<System:String x:Key="ExitMenuItemString">Exit</System:String>
+</ResourceDictionary>

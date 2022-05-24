@@ -1,0 +1,79 @@
+﻿<Window x:Class="ModManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:dd="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.WPF.DragDrop"
+        xmlns:local="clr-namespace:ModManager"
+        xmlns:models="clr-namespace:ModManager.Models"
+        xmlns:viewModels="clr-namespace:ModManager.ViewModels"
+        d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
+        mc:Ignorable="d"
+        Title="{DynamicResource AppNameString}" 
+        Icon="/Images/skyrimicon.ico"
+        Height="500" Width="450"
+		MinWidth="350" MinHeight="250">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.Resources>
+            <Style BasedOn="{StaticResource DefaultListBoxStyle}" TargetType="{x:Type ListBox}" />
+            <Style BasedOn="{StaticResource DefaultButtonStyle}" TargetType="{x:Type Button}" />
+
+            <Style x:Key="ListBoxItemStyle"
+                           BasedOn="{StaticResource DefaultListBoxItemStyle}"
+                           TargetType="{x:Type ListBoxItem}">
+                <Setter Property="dd:DragDrop.DragSourceIgnore" Value="True" />
+            </Style>
+
+            <DataTemplate x:Key="ListItemTemplate" DataType="{x:Type models:ListItemModel}">
+                <Border Background="Gainsboro"
+                                BorderBrush="Gray"
+                                BorderThickness="1"
+                                CornerRadius="2"
+                                SnapsToDevicePixels="True">
+                    <Grid Margin="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="32" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Height="24" Width="30" dd:DragDrop.DragSourceIgnore="{Binding IsSystem}" Cursor="SizeAll">
+                            <Path Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                Data="{StaticResource DragIcon}" Width="24" Height="24" Fill="Gray" />    
+                        </StackPanel>                        
+                        <TextBlock Grid.Column="1" Margin="6 0 0 0" VerticalAlignment="Center" Text="{Binding Name}" />
+                        <CheckBox Grid.Column="2" VerticalAlignment="Center" 
+                            Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                            IsEnabled="{Binding IsFound}" 
+                            IsChecked="{Binding IsEnabled}" />
+                    </Grid>
+                </Border>
+            </DataTemplate>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="58" />
+        </Grid.RowDefinitions>
+
+        <ListBox x:Name="LeftUnboundListBox"
+                HorizontalContentAlignment="Stretch"
+                dd:DragDrop.DragAdornerTemplate="{StaticResource ListItemTemplate}"
+                dd:DragDrop.IsDragSource="True"
+                dd:DragDrop.IsDropTarget="True"
+                dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                dd:DragDrop.DropHandler="{Binding}"
+                ItemContainerStyle="{StaticResource ListBoxItemStyle}"
+                ItemTemplate="{StaticResource ListItemTemplate}"
+                ItemsSource="{Binding Data}">
+        </ListBox>
+
+        <StackPanel Grid.Row="1" HorizontalAlignment="Right" Orientation="Horizontal" Margin="4">
+            <Button x:Name="btnSave" Click="btnSave_Click">Save</Button>
+            <Button x:Name="btnClose" Click="btnClose_Click">Close</Button>
+        </StackPanel>
+    </Grid>
+</Window>
