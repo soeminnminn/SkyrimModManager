@@ -7,6 +7,7 @@ using System.Security.Principal;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Win32;
+using ModManager.GameModules;
 
 namespace ModManager.Models
 {
@@ -104,42 +105,14 @@ namespace ModManager.Models
             var config = new Config
             {
                 Name = "Skyrim Special Edition",
-                ModuleFolder = "Data",
-                PluginFile = new PluginFilePath
-                {
-                    FolderName = "Skyrim Special Edition",
-                    FileName = "Plugins.txt",
 #if DEBUG
-                    FullPath = @"bin\Fake\Plugins.txt"
+                PluginFile = @"Plugins.txt",
 #else
-                    FullPath = ""
+                PluginFile = "",
 #endif
-                },
-                Format = new Formating
-                {
-                    Enable = new FormatExp
-                    {
-                        Pattern = @"^\*(.*?[\w\W])$",
-                        Format = "*<fileName>"
-                    },
-                    Disable = new FormatExp
-                    {
-                        Pattern = @"^([\w].*?[\w\W])$",
-                        Format = "<fileName>"
-                    },
-                    Comment = new FormatExp
-                    {
-                        Pattern = @"^#[\s]{0,}(.*?[\w\W])$",
-                        Format = "# <comment>"
-                    }
-                },
                 InstallFolder = new InstallFolderPath
                 {
-#if DEBUG
-                    Path = @"bin\Fake\Data",
-#else
                     Path = "",
-#endif
                     Registry = new RegistryPath
                     {
                         Path = @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Bethesda Softworks\Skyrim Special Edition",
@@ -147,21 +120,6 @@ namespace ModManager.Models
                     }
                 }
             };
-
-            config.SystemModules.Add("Skyrim.esm");
-            config.SystemModules.Add("Update.esm");
-            config.SystemModules.Add("Dawnguard.esm");
-            config.SystemModules.Add("HearthFires.esm");
-            config.SystemModules.Add("Dragonborn.esm");
-
-            config.SystemModules.Add("ccBGSSSE001-Fish.esm");
-            config.SystemModules.Add("ccQDRSSE001-SurvivalMode.esl");
-            config.SystemModules.Add("ccBGSSSE037-Curios.esl");
-            config.SystemModules.Add("ccBGSSSE025-AdvDSGS.esm");
-
-            config.ModuleExtensions.Add("esm");
-            config.ModuleExtensions.Add("esl");
-            config.ModuleExtensions.Add("esp");
 
             return config;
         }
@@ -186,7 +144,11 @@ namespace ModManager.Models
                         {
                             var json = reader.ReadToEnd();
                             var config = JsonSerializer.Deserialize<Config>(json);
-                            if (config != null) return config;
+                            if (config != null)
+                            {
+                                config.Initialize();
+                                return config;
+                            }
                         }
                     }
                     catch (Exception e)
@@ -225,8 +187,13 @@ namespace ModManager.Models
                     System.Diagnostics.Debug.WriteLine(e.Message);
                 }
             }
+
+            defConfig.Initialize();
             return defConfig;
         }
+
+        [JsonIgnore]
+        public GameSettings? Settings { get; private set; }
 
         [JsonPropertyName("name")]
         public string? Name { get; set; }
@@ -234,68 +201,96 @@ namespace ModManager.Models
         [JsonIgnore]
         public string AppDataPath { get => appDataPath; }
 
-        [JsonPropertyName("plugin")]
-        public PluginFilePath? PluginFile { get; set; }
+        [JsonIgnore]
+        public string GamePath { get; private set; } = string.Empty;
 
-        [JsonPropertyName("format")]
-        public Formating? Format { get; set; }
+        [JsonIgnore]
+        public GameID GameId
+        {
+            get {
+                if (!string.IsNullOrEmpty(this.Name))
+                {
+                    if (this.Name == "Morrowind")
+                        return GameID.Morrowind;
+                    else if (this.Name == "Oblivion")
+                        return GameID.Oblivion;
+                    else if (this.Name == "Skyrim")
+                        return GameID.Skyrim;
+                    else if (this.Name == "Skyrim Special Edition")
+                        return GameID.SkyrimSE;
+                    else if (this.Name == "Skyrim VR")
+                        return GameID.SkyrimVR;
+                    else if (this.Name == "Fallout3")
+                        return GameID.Fallout3;
+                    else if (this.Name == "FalloutNV")
+                        return GameID.FalloutNV;
+                    else if (this.Name == "Fallout4")
+                        return GameID.Fallout4;
+                    else if (this.Name == "Fallout4 VR")
+                        return GameID.Fallout4VR;
+                }
+                return GameID.UnKnown;
+            }
+        }
+
+        [JsonPropertyName("plugin")]
+        public string? PluginFile { get; set; }
 
         [JsonPropertyName("gamePath")]
         public InstallFolderPath? InstallFolder { get; set; }
 
-        [JsonPropertyName("dataFolder")]
-        public string? ModuleFolder { get; set; }
+        private void Initialize()
+        {
+            if (this.InstallFolder != null)
+            {
+                if (!string.IsNullOrEmpty(this.InstallFolder.Path)
+                    && Directory.Exists(this.InstallFolder.Path))
+                {
+                    this.GamePath = this.InstallFolder.Path;
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(this.InstallFolder.Registry?.Path)
+                        && !string.IsNullOrEmpty(this.InstallFolder.Registry?.KeyName))
+                    {
+                        var regPath = this.InstallFolder.Registry.Path;
+                        var regKey = this.InstallFolder.Registry.KeyName;
 
-        [JsonPropertyName("moduleExts")]
-        public List<string> ModuleExtensions { get; set; } = new List<string>();
+                        var installPath = Registry.GetValue(regPath, regKey, null) as string;
+                        if (!string.IsNullOrEmpty(installPath)
+                            && Directory.Exists(installPath))
+                        {
+                            this.GamePath = installPath;
+                        }
+                    }
+                }
 
-        [JsonPropertyName("systemModules")]
-        public List<string> SystemModules { get; set; } = new List<string>();
+                if (!string.IsNullOrEmpty(this.GamePath))
+                {
+                    this.Settings = new GameSettings(this.GameId, this.GamePath);
+                }
+            } 
+        }
 
         public FileInfo? GetPluginFile()
         {
-            if (this.PluginFile != null)
+            if (this.Settings == null) return null;
+            FileInfo? fileInfo = null;
+            if (!string.IsNullOrEmpty(this.PluginFile))
             {
-                var filePath = string.Empty;
-
-                if (!string.IsNullOrEmpty(this.PluginFile.FullPath)
-                    && File.Exists(this.PluginFile.FullPath))
-                {
-                    filePath = this.PluginFile.FullPath;
-                }
-                else if (!string.IsNullOrEmpty(this.PluginFile.FolderName)
-                    && !string.IsNullOrEmpty(this.PluginFile.FileName))
-                {
-                    filePath = Path.Combine(this.AppDataPath, this.PluginFile.FolderName, this.PluginFile.FileName);
-                }
-
-                if (!string.IsNullOrEmpty(filePath))
-                {
-                    var file = new FileInfo(filePath);
-                    if (file.Exists)
-                    {
-                        return file;
-                    }
-
-                    try
-                    {
-                        file.CreateText().Dispose();
-                        return file;
-                    } 
-                    catch(Exception e)
-                    { 
-                        System.Diagnostics.Debug.WriteLine(e.Message);
-                    }
-                }
+                fileInfo = new FileInfo(this.PluginFile);
+                if (fileInfo.Exists) return fileInfo;
             }
-            return null;
+
+            fileInfo = new FileInfo(this.Settings.PluginFilePath);
+            return fileInfo?.Exists == true ? fileInfo : null;
         }
 
         private bool IsModulesDataDir(DirectoryInfo dirInfo)
         {
-            if (dirInfo.Exists)
+            if (dirInfo.Exists && this.Settings != null)
             {
-                var systemFile = this.SystemModules.FirstOrDefault();
+                var systemFile = this.Settings.MasterFile;
                 if (!string.IsNullOrEmpty(systemFile))
                 {
                     var systemFilePath = Path.Combine(dirInfo.FullName, systemFile);
@@ -307,57 +302,9 @@ namespace ModManager.Models
 
         public DirectoryInfo? GetModulesDataDir()
         {
-            var dataDir = "Data";
-
-            if (!string.IsNullOrEmpty(this.ModuleFolder))
-            {
-                var dirInfo = new DirectoryInfo(this.ModuleFolder);
-                if (this.IsModulesDataDir(dirInfo))
-                {
-                    return dirInfo;
-                }
-                dataDir = this.ModuleFolder;
-            }
-            
-            if (this.InstallFolder != null)
-            {
-                if (!string.IsNullOrEmpty(this.InstallFolder.Path))
-                {
-                    var dirInfo = new DirectoryInfo(this.InstallFolder.Path);
-                    if (this.IsModulesDataDir(dirInfo))
-                    {
-                        return dirInfo;
-                    }
-
-                    var dataPath = Path.Combine(this.InstallFolder.Path, dataDir);
-                    dirInfo = new DirectoryInfo(dataPath);
-
-                    if (this.IsModulesDataDir(dirInfo))
-                    {
-                        return dirInfo;
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(this.InstallFolder.Registry?.Path)
-                    && !string.IsNullOrEmpty(this.InstallFolder.Registry?.KeyName))
-                {
-                    var regPath = this.InstallFolder.Registry.Path;
-                    var regKey = this.InstallFolder.Registry.KeyName;
-
-                    var installPath = Registry.GetValue(regPath, regKey, null) as string;
-                    if (!string.IsNullOrEmpty(installPath))
-                    {
-                        var dataPath = Path.Combine(installPath, dataDir);
-                        var dirInfo = new DirectoryInfo(dataPath);
-
-                        if (this.IsModulesDataDir(dirInfo))
-                        {
-                            return dirInfo;
-                        }
-                    }
-                }
-            }
-            return null;
+            if (this.Settings == null) return null;
+            var dirInfo = new DirectoryInfo(this.Settings.PluginsDirectory);
+            return this.IsModulesDataDir(dirInfo) ? dirInfo : null;
         }
 
         public class InstallFolderPath
@@ -376,43 +323,6 @@ namespace ModManager.Models
 
             [JsonPropertyName("key")]
             public string? KeyName { get; set; }
-        }
-
-        public class PluginFilePath
-        {
-            [JsonPropertyName("folder")]
-            public string? FolderName { get; set; }
-
-
-            [JsonPropertyName("file")]
-            public string? FileName { get; set; }
-
-            [JsonPropertyName("path")]
-            public string? FullPath { get; set; }
-        }
-
-        public class Formating
-        {
-            [JsonPropertyName("enable")]
-            public FormatExp? Enable { get; set; }
-
-            [JsonPropertyName("disable")]
-            public FormatExp? Disable { get; set; }
-
-            [JsonPropertyName("comment")]
-            public FormatExp? Comment { get; set; }
-
-            [JsonPropertyName("removeOnDisable")]
-            public bool RemoveOnDisable { get; set; } = true;
-        }
-
-        public class FormatExp
-        {
-            [JsonPropertyName("pattern")]
-            public string? Pattern { get; set; }
-
-            [JsonPropertyName("format")]
-            public string? Format { get; set; }
         }
     }
 }

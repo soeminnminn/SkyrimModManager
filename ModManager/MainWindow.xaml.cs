@@ -30,10 +30,12 @@ namespace ModManager
             }
             else
             {
+#if !DEBUG
                 if (MessageBox.Show(this, "Can not read plugin config file.", this.Title, MessageBoxButton.OK) == MessageBoxResult.OK)
                 {
                     this.Close();
                 }
+#endif
             }
         }
 

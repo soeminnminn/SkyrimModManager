@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
+using ModManager.GameModules;
 
 namespace ModManager.Models
 {
@@ -28,6 +29,9 @@ namespace ModManager.Models
         public int Index { get; set; } = -1;
 
         public string Name { get; set; } = string.Empty;
+
+        [JsonIgnore()]
+        public PluginInfo? Info { get; set; }
 
         public bool IsEnabled
         {

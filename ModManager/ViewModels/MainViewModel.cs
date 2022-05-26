@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Windows;
 using GongSolutions.Wpf.DragDrop;
 using ModManager.Models;
+using ModManager.GameModules;
 
 namespace ModManager.ViewModels
 {
@@ -41,20 +42,24 @@ namespace ModManager.ViewModels
         public MainViewModel(Config config)
         {
             this.config = config;
-            this.formatter = new Formatter(config.Format!);
+            this.formatter = new Formatter(true);
             this.Data = new ObservableCollection<ListItemModel>();
             this.Data.CollectionChanged += this.Data_CollectionChanged;
         }
 
         public bool Load()
         {
-            if (this.config == null) return false;
+            if (this.config == null) 
+            {
+                this.mHasChanged = false;
+                return false;
+            }
 
             this.Data.CollectionChanged -= this.Data_CollectionChanged;
             this.Comments.Clear();
 
-            this.mPluginFile =  config.GetPluginFile();
-            if (this.mPluginFile != null)
+            this.mPluginFile = config.GetPluginFile();
+            if (this.mPluginFile != null && config.Settings != null)
             {
                 var pluginData = new List<string>();
                 using (var reader = new StreamReader(mPluginFile.OpenRead()))
@@ -78,26 +83,22 @@ namespace ModManager.ViewModels
                 var dataDir = config.GetModulesDataDir();
                 if (dataDir != null && dataDir.Exists)
                 {
-                    var exts = config.ModuleExtensions;
-                    var systemMods = config.SystemModules;
+                    var modules = this.GetPlugins(dataDir, parsed);
 
-                    var files = dataDir.EnumerateFiles();
-                    var modules = files.Where(file =>
-                    {
-                        return exts.Contains(file.Extension.ToLower().Substring(1));
-                    }).ToList().ConvertAll(f => f.Name);
-
-                    modules.Sort();
+                    var moduleNames = modules.Select(x => x.OriginalName).ToList();
+                    var systemMods = config.Settings.ImplicitlyActivePlugins;
 
                     var list = new List<ListItemModel>();
                     foreach(var sysMod in systemMods)
                     {
-                        if (modules.Contains(sysMod))
+                        if (moduleNames.Contains(sysMod))
                         {
+                            var info = modules.Find(x => x.OriginalName == sysMod);
                             list.Add(new ListItemModel 
                             {
                                 Name = sysMod,
                                 Index = list.Count,
+                                Info = info,
                                 IsSystem = true,
                                 IsEnabled = true,
                                 IsFound = true
@@ -118,29 +119,34 @@ namespace ModManager.ViewModels
                         if (string.IsNullOrEmpty(p.Data)) continue;
                         if (systemMods.Contains(p.Data)) continue;
 
+                        var info = modules.Find(x => x.OriginalName == p.Data);
                         list.Add(new ListItemModel
                         {
                             Name = p.Data,
                             Index = list.Count,
+                            Info = info,
                             IsSystem = false,
                             IsEnabled = p.IsEnabled,
-                            IsFound = modules.Contains(p.Data)
+                            IsFound = moduleNames.Contains(p.Data)
                         });
                     }
                     
                     var namesList = list.ConvertAll(x => x.Name);
-                    var notInList = modules.Where(x => !namesList.Contains(x)).ToList();
+                    var notInList = moduleNames.Where(x => !namesList.Contains(x)).ToList();
                     foreach(var m in notInList)
                     {
+                        var info = modules.Find(x => x.OriginalName == m);
                         list.Add(new ListItemModel 
                         {
                             Name = m,
                             Index = list.Count,
+                            Info = info,
                             IsSystem = false,
                             IsEnabled = false,
                             IsFound = true
                         });
                     }
+                    list.Sort(new ListItemModelComparer());
 
                     this.mOrigData = JsonSerializer.Serialize(list);
                     this.Data = new ObservableCollection<ListItemModel>(list);
@@ -154,6 +160,36 @@ namespace ModManager.ViewModels
             return false;
         }
 
+        private List<PluginInfo> GetPlugins(DirectoryInfo dataDir, List<Formatter.Item> parsedTxt)
+        {
+            var list = new List<PluginInfo>();
+            if (this.config != null && dataDir != null && dataDir.Exists)
+            {
+                var gameId = this.config.GameId;
+                var parsed = parsedTxt.Where(x => !x.IsComment).ToList();
+
+                var files = dataDir.EnumerateFiles();
+                var modules = files.Where(file => this.config!.Settings!.IsValidExtension(file.Name));
+                var systemMods = this.config!.Settings!.HardcodedPlugins;
+
+                foreach (var m in modules)
+                {
+                    var name = GameSettings.UnGhost(m.Name);
+                    if (systemMods.Contains(name)) continue;
+
+                    var plugin = new PluginFile(gameId, m);
+                    plugin.Parse(true, false);
+                    if (plugin.IsValid)
+                    {
+                        var idx = parsed.FindIndex(x => x.Data == m.Name);
+                        var info = new PluginInfo(plugin, this.config!.Settings!, idx);
+                        list.Add(info);
+                    }
+                }
+            }
+            return list;
+        }
+
         private void Data_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             this.mHasChanged = true;
@@ -162,6 +198,8 @@ namespace ModManager.ViewModels
         public bool HasChanged
         {
             get {
+                if (string.IsNullOrEmpty(this.mOrigData)) return false;
+                
                 var list = this.Data.ToList();
                 var d = JsonSerializer.Serialize(list);
                 if (d != this.mOrigData) return true;
@@ -171,6 +209,9 @@ namespace ModManager.ViewModels
 
         public bool Save()
         {
+#if DEBUG
+            return false;
+#else
             if (this.HasChanged && this.formatter != null && this.mPluginFile != null)
             {
                 var list = Data.ToList();
@@ -204,6 +245,7 @@ namespace ModManager.ViewModels
                 }
             }
             return false;
+#endif
         }
 
         public List<string> Comments { get; private set; } = new List<string>();
@@ -231,6 +273,25 @@ namespace ModManager.ViewModels
         public override void Drop(IDropInfo dropInfo)
         {
             base.Drop(dropInfo);
+        }
+    
+        public class ListItemModelComparer : IComparer<ListItemModel>
+        {
+            public int Compare(ListItemModel? a, ListItemModel? b)
+            {
+                var result = 0;
+                if (a != null && b == null) result = -1;
+                if (a == null && b != null) result = 1;
+
+                if (result == 0 && a != null && b != null)
+                {
+                    if (a.Info != null && b.Info == null) result = -1;
+                    if (a.Info == null && b.Info != null) result = 1;
+
+                    if (result == 0 && a.Info != null) result = a.Info.CompareTo(b.Info);
+                }                
+                return result;
+            }
         }
     }
 }

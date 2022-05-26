@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using ModManager.Models;
 
@@ -8,21 +9,33 @@ namespace ModManager
 {
     internal class Formatter
     {
-        private Config.Formating? config;
+        private static readonly Regex PATTERN_COMMENT = new Regex(@"^#[\s]{0,}(.*?[\w\W])$", RegexOptions.IgnoreCase);
+        private static readonly Regex PATTERN_ENABLE = new Regex(@"^\*(.*?[\w\W])$", RegexOptions.IgnoreCase);
+        private static readonly Regex PATTERN_DISABLE = new Regex(@"^([\w].*?[\w\W])$", RegexOptions.IgnoreCase);
 
-        public Formatter(Config.Formating config)
+        private static readonly string FORMAT_COMMENT = @"# <comment>";
+        private static readonly string FORMAT_ENABLE = @"*<fileName>";
+        private static readonly string FORMAT_DISABLE = @"<fileName>";
+
+        public bool RemoveOnDisable { get; set; }
+
+        public Formatter()
         {
-            this.config = config;
+        }
+
+        public Formatter(bool removeOnDisable)
+        {
+            this.RemoveOnDisable = removeOnDisable;
         }
 
         public List<Item> Parse(List<string> list)
         {
             var result = new List<Item>();
-            if (config != null && list != null && list.Count > 0)
+            if (list != null && list.Count > 0)
             {
-                var commentRegex = new Regex(config.Comment!.Pattern!, RegexOptions.IgnoreCase);
-                var enableRegex = new Regex(config.Enable!.Pattern!, RegexOptions.IgnoreCase);
-                var disableRegex = new Regex(config.Disable!.Pattern!, RegexOptions.IgnoreCase);
+                var commentRegex = PATTERN_COMMENT;
+                var enableRegex = PATTERN_ENABLE;
+                var disableRegex = PATTERN_DISABLE;
                 
                 foreach(var s in list)
                 {
@@ -90,7 +103,7 @@ namespace ModManager
                     {
                         result.Add(this.MakeEnabled(item.Name));
                     }
-                    else if (!this.config!.RemoveOnDisable && !item.IsEnabled)
+                    else if (!this.RemoveOnDisable && !item.IsEnabled)
                     {
                         result.Add(this.MakeDisable(item.Name));
                     }
@@ -102,39 +115,34 @@ namespace ModManager
         private string MakeEnabled(string fileName)
         {
             var result = fileName;
-            var template = config!.Enable?.Format;
-            if (!string.IsNullOrEmpty(template))
-            {
-                var dict = new Dictionary<string, string>();
-                dict.Add(@"<fileName>", fileName);
-                result = dict.Aggregate(template, (s, kv) => s.Replace(kv.Key, kv.Value));
-            }
+            var template = FORMAT_ENABLE;
+            
+            var dict = new Dictionary<string, string>();
+            dict.Add(@"<fileName>", fileName);
+            result = dict.Aggregate(template, (s, kv) => s.Replace(kv.Key, kv.Value));
+
             return result;
         }
 
         private string MakeDisable(string fileName)
         {
             var result = fileName;
-            var template = config!.Disable?.Format;
-            if (!string.IsNullOrEmpty(template))
-            {
-                var dict = new Dictionary<string, string>();
-                dict.Add(@"<fileName>", fileName);
-                result = dict.Aggregate(template, (s, kv) => s.Replace(kv.Key, kv.Value));
-            }
+            var template = FORMAT_DISABLE;
+            
+            var dict = new Dictionary<string, string>();
+            dict.Add(@"<fileName>", fileName);
+            result = dict.Aggregate(template, (s, kv) => s.Replace(kv.Key, kv.Value));
             return result;
         }
 
         private string MakeComment(string comment)
         {
             var result = comment;
-            var template = config!.Comment?.Format;
-            if (!string.IsNullOrEmpty(template))
-            {
-                var dict = new Dictionary<string, string>();
-                dict.Add(@"<comment>", comment);
-                result = dict.Aggregate(template, (s, kv) => s.Replace(kv.Key, kv.Value));
-            }
+            var template = FORMAT_COMMENT;
+            
+            var dict = new Dictionary<string, string>();
+            dict.Add(@"<comment>", comment);
+            result = dict.Aggregate(template, (s, kv) => s.Replace(kv.Key, kv.Value));
             return result;
         }
 
@@ -147,6 +155,11 @@ namespace ModManager
             public bool IsEnabled { get; set; } = false;
 
             public bool IsComment { get; set; } = false;
+
+            public override string ToString()
+            {
+                return this.Data ?? base.ToString()!;
+            }
         }
     }
 }
