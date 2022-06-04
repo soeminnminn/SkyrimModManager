@@ -90,7 +90,12 @@ namespace ModManager.Models
                             }
                         }
                         catch { }
+                    } 
+                    else
+                    {
+                        appDataConfigDir = configDir;
                     }
+                    
                 }
                 return appDataConfigDir;
             }

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Linq;
 using System.IO;
 using System.Text.Json;
@@ -11,13 +9,12 @@ using System.Windows;
 using GongSolutions.Wpf.DragDrop;
 using ModManager.Models;
 using ModManager.GameModules;
+using System.Text;
 
 namespace ModManager.ViewModels
 {
-    public class MainViewModel : DefaultDropHandler, INotifyPropertyChanged
+    public class MainViewModel : DefaultDropHandler
     {
-        public event PropertyChangedEventHandler? PropertyChanged = null;
-
         private Config? config;
         private Formatter? formatter;
         private FileInfo? mPluginFile;
@@ -195,6 +192,11 @@ namespace ModManager.ViewModels
             this.mHasChanged = true;
         }
 
+        public bool IsValid
+        {
+            get => this.config != null && this.mPluginFile != null && !string.IsNullOrEmpty(this.mOrigData);
+        }
+
         public bool HasChanged
         {
             get {
@@ -209,9 +211,6 @@ namespace ModManager.ViewModels
 
         public bool Save()
         {
-#if DEBUG
-            return false;
-#else
             if (this.HasChanged && this.formatter != null && this.mPluginFile != null)
             {
                 var list = Data.ToList();
@@ -225,9 +224,9 @@ namespace ModManager.ViewModels
                             this.mPluginFile.Delete();
                         }
 
-                        using(var stream = this.mPluginFile.CreateText())
+                        using (var stream = this.mPluginFile.CreateText())
                         {
-                            foreach(var item in result)
+                            foreach (var item in result)
                             {
                                 if (string.IsNullOrEmpty(item)) continue;
                                 stream.WriteLine(item);
@@ -240,22 +239,96 @@ namespace ModManager.ViewModels
                         return true;
                     }
                     catch (IOException)
-                    { 
+                    {
                     }
                 }
             }
             return false;
-#endif
+        }
+
+        public bool Backup()
+        {
+            if (this.mPluginFile != null)
+            {
+                var configDir = Config.AppDataConfigDir;
+                if (!string.IsNullOrEmpty(configDir) && !string.IsNullOrEmpty(this.config?.Name))
+                {
+                    try
+                    {
+                        var dirInfo = new DirectoryInfo(Path.Combine(configDir, "Backup", this.config.Name));
+                        if (!dirInfo.Exists)
+                        {
+                            dirInfo.Create();
+                        }
+
+                        var distFileName = Path.Combine(dirInfo.FullName, DateTime.Now.ToString("dd-MM-yyyy_HHmmssfff") + ".txt");
+                        var backupFile = this.mPluginFile.CopyTo(distFileName);
+
+                        return backupFile.Exists;
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine(e.Message);
+                    }
+                }
+            }
+            return false;
+        }
+
+        public bool Restore(string? filePath)
+        {
+            var configDir = Config.AppDataConfigDir;
+            if (!string.IsNullOrEmpty(configDir) && !string.IsNullOrEmpty(this.config?.Name))
+            {
+                try
+                {
+                    var dirInfo = new DirectoryInfo(Path.Combine(configDir, "Backup", this.config.Name));
+                    if (!dirInfo.Exists) return false;
+
+                    FileInfo? fileInfo = null;
+                    if (filePath == null)
+                    {
+                        var files = dirInfo.GetFiles("*.txt");
+                        if (files.Length > 0)
+                        {
+                            var fileList = files.ToList();
+                            fileList.Sort(delegate (FileInfo a, FileInfo b)
+                            {
+                                return b.Name.CompareTo(a.Name);
+                            });
+                            fileInfo = fileList.First();
+                        }
+                    } 
+                    else
+                    {
+                        fileInfo = new FileInfo(filePath);
+                    }
+
+                    if (fileInfo?.Exists == true && this.mPluginFile != null)
+                    {
+                        using(var stream = this.mPluginFile.OpenWrite())
+                        {
+                            var text = fileInfo.OpenText().ReadToEnd();
+                            stream.Write(Encoding.UTF8.GetBytes(text));
+                            stream.Flush();
+                        }
+
+                        return this.Load();
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine(e.Message);
+                }
+            }
+
+            
+            return false;
         }
 
         public List<string> Comments { get; private set; } = new List<string>();
 
         public ObservableCollection<ListItemModel> Data { get; private set; }
-
-        protected virtual void OnPropertyChanged(string? propertyName = null)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         public override void DragOver(IDropInfo dropInfo)
         {

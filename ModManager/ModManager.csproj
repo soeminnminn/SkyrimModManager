@@ -5,6 +5,7 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+	<UICulture>en-US</UICulture>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <NoWarn>CA1416</NoWarn>
     <ApplicationIcon>Images\skyrimicon.ico</ApplicationIcon>

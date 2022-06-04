@@ -5,7 +5,14 @@ Skyrim Modules Manager
 
 ## Change Log
 
-#### Version 1.0.0
+#### Version 2.0.0.0
+- Change UI/UX.
+- Add backup and restore feature.
+
+#### Version 1.1.0.0
+- Add mods loadorder feature.
+
+#### Version 1.0.0.0
 - Intial release.
 
 License

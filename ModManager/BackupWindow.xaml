@@ -1,0 +1,57 @@
+﻿<Window x:Class="ModManager.BackupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ModManager"
+        xmlns:viewModels="clr-namespace:ModManager.ViewModels"
+        d:DataContext="{d:DesignInstance viewModels:BackupFilesModel}"
+        mc:Ignorable="d"
+        Title="{DynamicResource BackupWindowTitleString}" 
+        Icon="/Images/skyrimicon.ico"
+        WindowStartupLocation="CenterOwner"
+        Height="450" Width="600"
+        MinWidth="350" MinHeight="250"
+        ResizeMode="CanResizeWithGrip">
+
+    <Window.CommandBindings>
+        <CommandBinding Command="local:RoutedCommands.Restore" Executed="RestoreCommand_Executed" />
+        <CommandBinding Command="local:RoutedCommands.Delete" Executed="DeleteCommand_Executed" />
+    </Window.CommandBindings>
+    <DockPanel>
+        <Grid Margin="4,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="100" />
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition MinWidth="150" />
+            </Grid.ColumnDefinitions>
+            <ListBox x:Name="listFiles" 
+                    ItemsSource="{Binding Data}"
+                    SelectionChanged="listFiles_SelectionChanged">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu>
+                                    <MenuItem Name="ItemRestore" Header="{DynamicResource RestoreMenuItemString}" Command="local:RoutedCommands.Restore" />
+                                    <MenuItem Name="ItemDelete" Header="{DynamicResource DeleteMenuItemString}" Command="local:RoutedCommands.Delete" />
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <GridSplitter Grid.Column="1" Height="Auto" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="Transparent" />
+            <TextBox x:Name="txtContent" Grid.Column="2" 
+                     IsReadOnly="True"
+                     IsReadOnlyCaretVisible="True"
+                     TextWrapping="Wrap" 
+                     VerticalScrollBarVisibility="Auto" />
+        </Grid>
+    </DockPanel>
+</Window>

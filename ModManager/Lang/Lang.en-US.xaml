@@ -10,10 +10,31 @@
 	<!-- App and Window Strings -->
 	<System:String x:Key="AppNameString">Skyrim Mods Manager</System:String>
     <System:String x:Key="MainWindowTitleString">Skyrim Mods Manager</System:String>
-	<System:String x:Key="AboutWindowTitleString">About</System:String>
+    <System:String x:Key="BackupWindowTitleString">Backup &amp; Restore</System:String>
+	<System:String x:Key="AboutWindowTitleString">About - {0}</System:String>
 	
 	<!-- Menu Strings -->
-	<System:String x:Key="FileMenuHeaderString">File</System:String>
-	<System:String x:Key="SaveMenuItemString">Save</System:String>
-	<System:String x:Key="ExitMenuItemString">Exit</System:String>
+	<System:String x:Key="FileMenuItemString">_File</System:String>
+	<System:String x:Key="SaveMenuItemString">_Save</System:String>
+	<System:String x:Key="ExitMenuItemString">E_xit</System:String>
+    <System:String x:Key="RefreshMenuItemString">R_efresh</System:String>
+    <System:String x:Key="BackupMenuItemString">_Backup</System:String>
+    <System:String x:Key="RestoreMenuItemString">_Restore</System:String>
+    <System:String x:Key="BackupRestoreMenuItemString">Backup &amp; _Restore …</System:String>
+    <System:String x:Key="RestoreLastMenuItemString">Restore _last</System:String>
+    <System:String x:Key="DeleteMenuItemString">_Delete</System:String>
+    <System:String x:Key="HelpMenuItemString">_Help</System:String>
+    <System:String x:Key="AboutMenuItemString">_About</System:String>
+
+    <!-- Messages -->
+    <System:String x:Key="MessageLoadingString">Loading</System:String>
+    <System:String x:Key="MessageReadyString">Ready</System:String>
+
+    <System:String x:Key="MessageNeedSaveString">Do you want to save changes</System:String>
+    <System:String x:Key="MessageSaveString">Data has been save successfull.</System:String>
+    <System:String x:Key="MessageBackupString">Data backup successful.</System:String>
+    <System:String x:Key="MessageRestoreString">Data has been restored successful.</System:String>
+    <System:String x:Key="MessageCantLoadString">Can not read plugin config file.</System:String>
+
+    <System:String x:Key="AboutString" xml:space="preserve">Develop by Soe Minn Minn&#13;Copyright © 2022 The Open Source Project</System:String>
 </ResourceDictionary>

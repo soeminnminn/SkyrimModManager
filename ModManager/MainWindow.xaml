@@ -11,29 +11,50 @@
         mc:Ignorable="d"
         Title="{DynamicResource AppNameString}" 
         Icon="/Images/skyrimicon.ico"
-        Height="500" Width="450"
-		MinWidth="350" MinHeight="250">
+        WindowStartupLocation="CenterScreen"
+        Height="600" Width="450"
+		MinWidth="350" MinHeight="250"
+        ResizeMode="CanResizeWithGrip" >
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
-    <Grid>
-        <Grid.Resources>
+
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Save" CanExecute="Save_CanExecute" Executed="SaveCommand_Executed" />
+        <CommandBinding Command="local:RoutedCommands.Refresh" CanExecute="Refresh_CanExecute" Executed="RefreshCommand_Executed" />
+        <CommandBinding Command="local:RoutedCommands.Backup" CanExecute="Backup_CanExecute" Executed="BackupCommand_Executed" />
+        <CommandBinding Command="local:RoutedCommands.RestoreLast" CanExecute="RestoreLast_CanExecute" Executed="RestoreLastCommand_Executed" />
+        <CommandBinding Command="local:RoutedCommands.Restore" Executed="RestoreCommand_Executed" />
+        <CommandBinding Command="local:RoutedCommands.Exit" Executed="ExitCommand_Executed" />
+        <CommandBinding Command="local:RoutedCommands.About" Executed="AboutCommand_Executed" />
+    </Window.CommandBindings>
+
+    <Window.InputBindings>
+        <KeyBinding Command="local:RoutedCommands.Refresh" Key="F5" />
+        <KeyBinding Command="local:RoutedCommands.Backup" Key="B" Modifiers="Ctrl" />
+        <KeyBinding Command="local:RoutedCommands.RestoreLast" Key="Z" Modifiers="Ctrl" />
+        <KeyBinding Command="local:RoutedCommands.Exit" Key="W" Modifiers="Ctrl" />
+        <KeyBinding Command="local:RoutedCommands.About" Key="F1" />
+    </Window.InputBindings>
+
+    <DockPanel>
+        <DockPanel.Resources>
             <Style BasedOn="{StaticResource DefaultListBoxStyle}" TargetType="{x:Type ListBox}" />
             <Style BasedOn="{StaticResource DefaultButtonStyle}" TargetType="{x:Type Button}" />
 
             <Style x:Key="ListBoxItemStyle"
-                           BasedOn="{StaticResource DefaultListBoxItemStyle}"
-                           TargetType="{x:Type ListBoxItem}">
+                   BasedOn="{StaticResource DefaultListBoxItemStyle}"
+                   TargetType="{x:Type ListBoxItem}">
                 <Setter Property="dd:DragDrop.DragSourceIgnore" Value="True" />
             </Style>
 
             <DataTemplate x:Key="ListItemTemplate" DataType="{x:Type models:ListItemModel}">
                 <Border Background="Gainsboro"
-                                BorderBrush="Gray"
-                                BorderThickness="1"
-                                CornerRadius="2"
-                                SnapsToDevicePixels="True">
+                                    BorderBrush="Gray"
+                                    BorderThickness="1"
+                                    CornerRadius="2"
+                                    SnapsToDevicePixels="True">
                     <Grid Margin="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="32" />
@@ -42,38 +63,49 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Height="24" Width="30" dd:DragDrop.DragSourceIgnore="{Binding IsSystem}" Cursor="SizeAll">
                             <Path Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                Data="{StaticResource DragIcon}" Width="24" Height="24" Fill="Gray" />    
-                        </StackPanel>                        
+                                    Data="{StaticResource DragIcon}" Width="24" Height="24" Fill="Gray" />
+                        </StackPanel>
                         <TextBlock Grid.Column="1" Margin="6 0 0 0" VerticalAlignment="Center" Text="{Binding Name}" />
                         <CheckBox Grid.Column="2" VerticalAlignment="Center" 
-                            Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}" 
-                            IsEnabled="{Binding IsFound}" 
-                            IsChecked="{Binding IsEnabled}" />
+                                Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                IsEnabled="{Binding IsFound}" 
+                                IsChecked="{Binding IsEnabled}" />
                     </Grid>
                 </Border>
             </DataTemplate>
-        </Grid.Resources>
-
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="58" />
-        </Grid.RowDefinitions>
-
-        <ListBox x:Name="LeftUnboundListBox"
-                HorizontalContentAlignment="Stretch"
-                dd:DragDrop.DragAdornerTemplate="{StaticResource ListItemTemplate}"
-                dd:DragDrop.IsDragSource="True"
-                dd:DragDrop.IsDropTarget="True"
-                dd:DragDrop.UseDefaultEffectDataTemplate="True"
-                dd:DragDrop.DropHandler="{Binding}"
-                ItemContainerStyle="{StaticResource ListBoxItemStyle}"
-                ItemTemplate="{StaticResource ListItemTemplate}"
-                ItemsSource="{Binding Data}">
+        </DockPanel.Resources>
+        
+        <Menu DockPanel.Dock="Top" Name="MainMenu" IsMainMenu="True">
+            <MenuItem Header="{DynamicResource FileMenuItemString}">
+                <MenuItem Command="ApplicationCommands.Save" />
+                <Separator />
+                <MenuItem Name="MenuItemRefresh" Header="{DynamicResource RefreshMenuItemString}" InputGestureText="F5" Command="local:RoutedCommands.Refresh" />
+                <Separator />
+                <MenuItem Name="MenuItemBackup" Header="{DynamicResource BackupMenuItemString}" InputGestureText="Ctrl+B" Command="local:RoutedCommands.Backup" />
+                <MenuItem Name="MenuItemRestoreLast" Header="{DynamicResource RestoreLastMenuItemString}" InputGestureText="Ctrl+Z" Command="local:RoutedCommands.RestoreLast" />
+                <MenuItem Name="MenuItemRestore" Header="{DynamicResource BackupRestoreMenuItemString}" Command="local:RoutedCommands.Restore" />
+                <Separator />
+                <MenuItem Name="MenuItemExit" Header="{DynamicResource ExitMenuItemString}" InputGestureText="Ctrl+W" Command="local:RoutedCommands.Exit" />
+            </MenuItem>
+            <MenuItem Header="{DynamicResource HelpMenuItemString}">
+                <MenuItem Name="MenuItemAbout" Header="{DynamicResource AboutMenuItemString}" InputGestureText="F1" Command="local:RoutedCommands.About" />
+            </MenuItem>
+        </Menu>
+        <StatusBar DockPanel.Dock="Bottom" Padding="8,2">
+            <StatusBarItem Padding="0,0,16,0" MinWidth="300">
+                <TextBlock x:Name="statusMessage" Text="{DynamicResource MessateReadyString}" />
+            </StatusBarItem>
+        </StatusBar>
+        <ListBox Name="ModsListBox"
+                    HorizontalContentAlignment="Stretch"
+                    dd:DragDrop.DragAdornerTemplate="{StaticResource ListItemTemplate}"
+                    dd:DragDrop.IsDragSource="True"
+                    dd:DragDrop.IsDropTarget="True"
+                    dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                    dd:DragDrop.DropHandler="{Binding}"
+                    ItemContainerStyle="{StaticResource ListBoxItemStyle}"
+                    ItemTemplate="{StaticResource ListItemTemplate}"
+                    ItemsSource="{Binding Data}">
         </ListBox>
-
-        <StackPanel Grid.Row="1" HorizontalAlignment="Right" Orientation="Horizontal" Margin="4">
-            <Button x:Name="btnSave" Click="btnSave_Click">Save</Button>
-            <Button x:Name="btnClose" Click="btnClose_Click">Close</Button>
-        </StackPanel>
-    </Grid>
+    </DockPanel>
 </Window>
