@@ -12,8 +12,8 @@
         Title="{DynamicResource AppNameString}" 
         Icon="/Images/skyrimicon.ico"
         WindowStartupLocation="CenterScreen"
-        Height="600" Width="450"
-		MinWidth="350" MinHeight="250"
+        Height="600" Width="700"
+		MinWidth="650" MinHeight="250"
         ResizeMode="CanResizeWithGrip" >
 
     <Window.Resources>
@@ -49,8 +49,13 @@
                 <Setter Property="dd:DragDrop.DragSourceIgnore" Value="True" />
             </Style>
 
+            <Style x:Key="ErrorMessage" TargetType="{x:Type TextBlock}">
+                <Setter Property="Foreground" Value="Red" />
+                <Setter Property="FontSize" Value="10" />
+            </Style>
+
             <DataTemplate x:Key="ListItemTemplate" DataType="{x:Type models:ListItemModel}">
-                <Border Background="Gainsboro"
+                <Border Background="Transparent"
                                     BorderBrush="Gray"
                                     BorderThickness="1"
                                     CornerRadius="2"
@@ -65,10 +70,13 @@
                             <Path Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}"
                                     Data="{StaticResource DragIcon}" Width="24" Height="24" Fill="Gray" />
                         </StackPanel>
-                        <TextBlock Grid.Column="1" Margin="6 0 0 0" VerticalAlignment="Center" Text="{Binding Name}" />
+                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                            <TextBlock Margin="6 0 0 0" VerticalAlignment="Center" Text="{Binding Name}" />
+                            <TextBlock Margin="6 0 0 0" Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorMessage}" />
+                        </StackPanel>
                         <CheckBox Grid.Column="2" VerticalAlignment="Center" 
                                 Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}" 
-                                IsEnabled="{Binding IsFound}" 
+                                IsEnabled="{Binding CanCheck}" 
                                 IsChecked="{Binding IsEnabled}" />
                     </Grid>
                 </Border>
@@ -96,7 +104,14 @@
                 <TextBlock x:Name="statusMessage" Text="{DynamicResource MessateReadyString}" />
             </StatusBarItem>
         </StatusBar>
-        <ListBox Name="ModsListBox"
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="300" />
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition MinWidth="300" />
+            </Grid.ColumnDefinitions>
+
+            <ListBox Name="ModsListBox"
                     HorizontalContentAlignment="Stretch"
                     dd:DragDrop.DragAdornerTemplate="{StaticResource ListItemTemplate}"
                     dd:DragDrop.IsDragSource="True"
@@ -105,7 +120,77 @@
                     dd:DragDrop.DropHandler="{Binding}"
                     ItemContainerStyle="{StaticResource ListBoxItemStyle}"
                     ItemTemplate="{StaticResource ListItemTemplate}"
-                    ItemsSource="{Binding Data}">
-        </ListBox>
+                    ItemsSource="{Binding Data}" 
+                    SelectionChanged="ModsListBox_SelectionChanged">
+            </ListBox>
+            <GridSplitter Grid.Column="1" Height="Auto" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="Transparent" />
+            <Border Grid.Column="2" BorderBrush="LightGray" BorderThickness="1" Margin="0,4,4,4">
+                <Grid>
+                    <Grid.Resources>
+                        <Style x:Key="HeaderLabel" TargetType="Label">
+                            <Setter Property="FontWeight" Value="Bold" />
+                            <Setter Property="HorizontalAlignment" Value="Stretch" />
+                            <Setter Property="BorderThickness" Value="0,0,0,1" />
+                            <Setter Property="BorderBrush" Value="LightGray" />
+                            <Setter Property="HorizontalContentAlignment" Value="Center" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="35" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Label Style="{StaticResource HeaderLabel}">Module Informations</Label>
+                    <ScrollViewer Grid.Row="1">
+                        <StackPanel>
+                            <Grid x:Name="layoutInfo" Visibility="Hidden">
+                                <Grid.Resources>
+                                    <Style x:Key="ItemHeader" TargetType="Label">
+                                        <Setter Property="FontWeight" Value="Bold" />
+                                        <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                        <Setter Property="Margin" Value="4,0" />
+                                    </Style>
+                                    <Style x:Key="{x:Type TextBlock}" TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+                                        <Setter Property="Margin" Value="0,6,4,0" />
+                                    </Style>
+                                </Grid.Resources>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition MinHeight="30" />
+                                    <RowDefinition MinHeight="30" />
+                                    <RowDefinition MinHeight="30" />
+                                    <RowDefinition Height="30" />
+                                </Grid.RowDefinitions>
+
+                                <Label Grid.Row="0" Content="Name" Style="{StaticResource ItemHeader}" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Name="lblInfoName" />
+
+                                <Label Grid.Row="1" Content="Author" Style="{StaticResource ItemHeader}" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Name="lblInfoAuthor" />
+
+                                <Label Grid.Row="2" Content="Description" Style="{StaticResource ItemHeader}" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Name="lblInfoDesc" />
+
+                                <Label Grid.Row="3" Content="Record flags" Style="{StaticResource ItemHeader}" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Name="lblInfoFlags" />
+
+                                <Label Grid.Row="4" Content="Master files" Style="{StaticResource ItemHeader}" />
+                                <TextBlock Grid.Row="4" Grid.Column="1" Name="lblInfoMasters" />
+
+                                <Label Grid.Row="5" Content="Modified Date" Style="{StaticResource ItemHeader}" />
+                                <TextBlock Grid.Row="5" Grid.Column="1" Name="lblInfoDate" />
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+        
     </DockPanel>
 </Window>

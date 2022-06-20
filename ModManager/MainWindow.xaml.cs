@@ -5,6 +5,7 @@ using ModManager.Models;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Threading;
+using System.Windows.Controls;
 
 namespace ModManager
 {
@@ -192,6 +193,35 @@ namespace ModManager
         {
             MessageBox.Show(this, LocalizedStrings.AboutString, string.Format(LocalizedStrings.AboutWindowTitleString, this.Title),
                 MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void ModsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var item = ModsListBox.SelectedItem as ListItemModel;
+            if (item != null && item.Info != null)
+            {
+                var recordFlags = string.Empty;
+                if (item.Info.ESM)
+                    recordFlags += "ESM" + Environment.NewLine;
+                if (item.Info.ESL)
+                    recordFlags += "ESL" + Environment.NewLine;
+                if (item.Info.ESU)
+                    recordFlags += "ESU" + Environment.NewLine;
+                if (item.Info.Localized)
+                    recordFlags += "Localized" + Environment.NewLine;
+
+                lblInfoName.Text = item.Info.Name;
+                lblInfoAuthor.Text = item.Info.Author;
+                lblInfoDesc.Text = item.Info.Description;
+                lblInfoFlags.Text = recordFlags.TrimEnd();
+                lblInfoMasters.Text = string.Join(Environment.NewLine, item.Info.Dependencies);
+                lblInfoDate.Text = item.Info.DateTime.ToString("G");
+                layoutInfo.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                layoutInfo.Visibility = Visibility.Hidden;
+            }
         }
     }
 }

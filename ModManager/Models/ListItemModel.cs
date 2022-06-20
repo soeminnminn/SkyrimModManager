@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 using ModManager.GameModules;
@@ -30,8 +31,26 @@ namespace ModManager.Models
 
         public string Name { get; set; } = string.Empty;
 
+        public string ErrorMessage 
+        { 
+            get 
+            {
+                var messages = new List<string>();
+                if (!IsFound)
+                    messages.Add("File not found");
+                if (MasterMissing)
+                    messages.Add("Master file missing");
+                return string.Join(", ", messages).Trim();
+            } 
+        }
+
         [JsonIgnore()]
         public PluginInfo? Info { get; set; }
+
+        public bool HasError
+        {
+            get => !string.IsNullOrEmpty(ErrorMessage);
+        }
 
         public bool IsEnabled
         {
@@ -69,6 +88,16 @@ namespace ModManager.Models
         public bool IsUser 
         {
             get => !this.IsSystem;
+        }
+
+        public bool MasterMissing 
+        { 
+            get => Info?.MissingMaster ?? false; 
+        }
+
+        public bool CanCheck 
+        {
+            get => IsFound && !MasterMissing;
         }
 
         protected virtual void OnPropertyChanged(string? propertyName = null)

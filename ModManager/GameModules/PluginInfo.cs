@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace ModManager.GameModules
 {
@@ -45,6 +46,10 @@ namespace ModManager.GameModules
                     var idx = Array.FindIndex(settings.LoadOrderPlugins, p => p.ToLower() == lowerName);
                     this.LoadOrderTxtIndex = idx > -1 ? idx : int.MaxValue;
                 }
+
+                this.Author = plugin.Author;
+                this.Description = plugin.Description;
+                this.Localized = plugin.Localized;
             }
         }
 
@@ -53,6 +58,12 @@ namespace ModManager.GameModules
         public string Name { get; private set; } = string.Empty;
 
         public string Extension { get; private set; } = string.Empty;
+
+        public string Author { get; private set; } = string.Empty;
+
+        public string Description { get; private set; } = string.Empty;
+
+        public bool Localized { get; private set; }
 
         public bool ESM { get; private set; }
 
@@ -78,6 +89,8 @@ namespace ModManager.GameModules
 
         public int LoadOrderTxtIndex { get; private set; } = int.MaxValue;
 
+        public bool MissingMaster { get; private set; }
+
         public bool IsDepandOn(PluginInfo other)
         {
             if (this.Dependencies.Length > 0)
@@ -86,6 +99,22 @@ namespace ModManager.GameModules
                   StringComparer.InvariantCultureIgnoreCase);
             }
             return false;
+        }
+
+        public void CheckMasterFilesMissing(string[] source)
+        {
+            if (this.Dependencies.Length > 0)
+            {
+                if (source.Length > 0)
+                {
+                    var containCount = this.Dependencies.Where(x => source.Contains(x)).Count();
+                    this.MissingMaster = containCount != this.Dependencies.Length;
+                }
+                else
+                {
+                    this.MissingMaster = true;
+                }
+            }
         }
 
         public override string ToString()
@@ -103,6 +132,9 @@ namespace ModManager.GameModules
             if (a.Name == b.Name) return 0;
             if (a.IsMaster) return -1;
             if (b.IsMaster) return 1;
+
+            if (b.MissingMaster) return -1;
+            if (a.MissingMaster) return 1;
 
             if (b.IsDepandOn(a)) return -1;
             if (a.IsDepandOn(b)) return 1;

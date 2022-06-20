@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace ModManager.GameModules
 {
@@ -20,7 +21,13 @@ namespace ModManager.GameModules
 
         public List<IRecord> Records = new List<IRecord>();
 
+        public string Author { get; private set; } = string.Empty;
+
+        public string Description { get; private set; } = string.Empty;
+
         public string[] Dependencies = new string[] {};
+
+        public HEDR? HEDRData { get; private set; }
 
         private bool m_isLightExt = false;
         public bool IsLight
@@ -30,7 +37,15 @@ namespace ModManager.GameModules
                         this.m_isLightExt;
             }
         }
-        
+
+        public bool Localized
+        {
+            get
+            {
+                return (this.Header != null && ((this.Header.Flags & 0x00000080) != 0));
+            }
+        }
+
         public PluginFile(GameID gameId, string path)
         {
             this.GameId = gameId;
@@ -62,7 +77,7 @@ namespace ModManager.GameModules
                         this.Header = new Record(this.GameId, signature, stream, false, true);
                         if (!headerOnly)
                         {
-                            while(stream.Position < stream.Length)
+                            while (stream.Position < stream.Length)
                             {
                                 signature = Signature.ReadFrom(stream);
                                 if (signature.IsValid)
@@ -87,18 +102,49 @@ namespace ModManager.GameModules
                         }
                     }
                 }
+
+                var header = this.Header as Record;
+                if (header != null)
+                {
+                    var mastersList = header.Records.Where(x => x.RecordType == "MAST" && x is SubRecord)
+                                    .Select(x => (x as SubRecord)!.AsString()).ToList();
+                    this.Dependencies = mastersList.ToArray();
+
+                    this.Author = header.Records.Where(x => x.RecordType == "CNAM" && x is SubRecord)
+                                    .Select(x => (x as SubRecord)!.AsString()).FirstOrDefault() ?? string.Empty;
+
+                    this.Description = header.Records.Where(x => x.RecordType == "SNAM" && x is SubRecord)
+                                    .Select(x => (x as SubRecord)!.AsString()).FirstOrDefault() ?? string.Empty;
+
+                    var hedrRecord = header.Records.Where(x => x.RecordType == "HEDR" && x is SubRecord).FirstOrDefault() as SubRecord;
+                    if (hedrRecord != null)
+                    {
+                        this.HEDRData = HEDR.Unpack(hedrRecord.Data);
+                    }
+                }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 System.Diagnostics.Debug.WriteLine(e.Message);
             }
+        }
 
-            var header = this.Header as Record;
-            if (header != null)
+        [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 12)]
+        public struct HEDR
+        {
+            public float Version;
+            public uint NumberOfRecords;
+            public uint NextObjectId;
+
+            internal static HEDR Unpack(byte[] bytes)
             {
-                var list = header.Records.Where(x => x.RecordType == "MAST" && x is SubRecord)
-                                .Select(x => (x as SubRecord)!.AsString()).ToList();
-                this.Dependencies = list.ToArray();
+                unsafe
+                {
+                    fixed (byte* map = &bytes[0])
+                    {
+                        return *(HEDR*)map;
+                    }
+                }
             }
         }
     }

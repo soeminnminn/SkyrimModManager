@@ -133,7 +133,7 @@ namespace ModManager.ViewModels
                     foreach(var m in notInList)
                     {
                         var info = modules.Find(x => x.OriginalName == m);
-                        list.Add(new ListItemModel 
+                        list.Add(new ListItemModel
                         {
                             Name = m,
                             Index = list.Count,
@@ -141,7 +141,7 @@ namespace ModManager.ViewModels
                             IsSystem = false,
                             IsEnabled = false,
                             IsFound = true
-                        });
+                        }); ;
                     }
                     list.Sort(new ListItemModelComparer());
 
@@ -167,7 +167,9 @@ namespace ModManager.ViewModels
 
                 var files = dataDir.EnumerateFiles();
                 var modules = files.Where(file => this.config!.Settings!.IsValidExtension(file.Name));
+
                 var systemMods = this.config!.Settings!.HardcodedPlugins;
+                var modulesNames = modules.Select(x => GameSettings.UnGhost(x.Name)).Concat(systemMods).ToArray();
 
                 foreach (var m in modules)
                 {
@@ -180,6 +182,7 @@ namespace ModManager.ViewModels
                     {
                         var idx = parsed.FindIndex(x => x.Data == m.Name);
                         var info = new PluginInfo(plugin, this.config!.Settings!, idx);
+                        info.CheckMasterFilesMissing(modulesNames);
                         list.Add(info);
                     }
                 }
