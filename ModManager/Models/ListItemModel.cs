@@ -35,12 +35,14 @@ namespace ModManager.Models
         { 
             get 
             {
-                var messages = new List<string>();
+                var message = string.Empty;
                 if (!IsFound)
-                    messages.Add("File not found");
-                if (MasterMissing)
-                    messages.Add("Master file missing");
-                return string.Join(", ", messages).Trim();
+                    message = "File not found";
+                else if (Info == null)
+                    message = "File can't load";
+                else if (MasterMissing)
+                    message = "Master file missing";
+                return message.Trim();
             } 
         }
 
