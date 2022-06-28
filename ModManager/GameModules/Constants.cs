@@ -16,4 +16,11 @@ namespace ModManager.GameModules
         SkyrimVR,
     }
 
+    public enum HeaderFlag
+    {
+        Master = 0x1,
+        Localized = 0x80,
+        LightMaster = 0x200
+    }
+
 }

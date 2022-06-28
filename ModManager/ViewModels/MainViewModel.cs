@@ -90,7 +90,7 @@ namespace ModManager.ViewModels
                     {
                         if (moduleNames.Contains(sysMod))
                         {
-                            var info = modules.Find(x => x.OriginalName == sysMod);
+                            var info = modules.Find(x => x.OriginalName.Equals(sysMod, StringComparison.InvariantCultureIgnoreCase));
                             list.Add(new ListItemModel 
                             {
                                 Name = sysMod,
@@ -116,7 +116,7 @@ namespace ModManager.ViewModels
                         if (string.IsNullOrEmpty(p.Data)) continue;
                         if (systemMods.Contains(p.Data)) continue;
 
-                        var info = modules.Find(x => x.OriginalName == p.Data);
+                        var info = modules.Find(x => x.OriginalName.Equals(p.Data, StringComparison.InvariantCultureIgnoreCase));
                         list.Add(new ListItemModel
                         {
                             Name = p.Data,
@@ -132,7 +132,7 @@ namespace ModManager.ViewModels
                     var notInList = moduleNames.Where(x => !namesList.Contains(x)).ToList();
                     foreach(var m in notInList)
                     {
-                        var info = modules.Find(x => x.OriginalName == m);
+                        var info = modules.Find(x => x.OriginalName.Equals(m, StringComparison.InvariantCultureIgnoreCase));
                         list.Add(new ListItemModel
                         {
                             Name = m,
@@ -180,7 +180,7 @@ namespace ModManager.ViewModels
                     plugin.Parse(true, false);
                     if (plugin.IsValid)
                     {
-                        var idx = parsed.FindIndex(x => x.Data == m.Name);
+                        var idx = parsed.FindIndex(x => m.Name.Equals(x.Data, StringComparison.InvariantCultureIgnoreCase));
                         var info = new PluginInfo(plugin, this.config!.Settings!, idx);
                         info.CheckMasterFilesMissing(modulesNames);
                         list.Add(info);

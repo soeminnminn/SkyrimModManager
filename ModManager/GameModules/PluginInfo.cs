@@ -22,8 +22,13 @@ namespace ModManager.GameModules
                 this.ESL = lowerExt == "esl";
 
                 this.DateTime = file.LastWriteTime;
-                this.IsMaster = this.Name == settings.MasterFile;
                 this.Dependencies = plugin.Dependencies;
+
+                this.IsSystemMaster = this.Name == settings.MasterFile;
+                this.IsImplicit = settings.IsImplicitlyActive(this.Name);
+
+                this.HasMasterFlag = plugin.HasMasterFlag;
+                this.HasLightFlag = plugin.HasLightFlag;
 
                 var lowerName = this.Name.ToLower();
 
@@ -65,6 +70,14 @@ namespace ModManager.GameModules
 
         public bool Localized { get; private set; }
 
+        public bool IsSystemMaster { get; private set; }
+
+        public bool IsImplicit { get; private set; }
+
+        public bool HasMasterFlag { get; private set; }
+
+        public bool HasLightFlag { get; private set; }
+
         public bool ESM { get; private set; }
 
         public bool ESP { get; private set; }
@@ -73,9 +86,7 @@ namespace ModManager.GameModules
 
         public bool ESL { get; private set; }
 
-        public bool IsESM { get => ESM || ESL; }
-
-        public bool IsMaster { get; private set; }
+        public bool IsESM { get => ESM || ESL || HasLightFlag; }
 
         public DateTime DateTime { get; private set; } = DateTime.Now;
 
@@ -107,7 +118,7 @@ namespace ModManager.GameModules
             {
                 if (source.Length > 0)
                 {
-                    var containCount = this.Dependencies.Where(x => source.Contains(x)).Count();
+                    var containCount = this.Dependencies.Where(x => source.Contains(x, StringComparer.InvariantCultureIgnoreCase)).Count();
                     this.MissingMaster = containCount != this.Dependencies.Length;
                 }
                 else
@@ -130,8 +141,15 @@ namespace ModManager.GameModules
             var b = other;
 
             if (a.Name == b.Name) return 0;
-            if (a.IsMaster) return -1;
-            if (b.IsMaster) return 1;
+
+            if (a.IsSystemMaster) return -1;
+            if (b.IsSystemMaster) return 1;
+
+            if (a.IsImplicit) return -1;
+            if (b.IsImplicit) return 1;
+
+            if (a.HasMasterFlag) return -1;
+            if (b.HasMasterFlag) return 1;
 
             if (b.MissingMaster) return -1;
             if (a.MissingMaster) return 1;
@@ -153,7 +171,7 @@ namespace ModManager.GameModules
                             result = a.DateTime.CompareTo(b.DateTime);
                             if (result == 0)
                             {
-                                result = a.Name.CompareTo(b.Name);
+                                result = StringComparer.InvariantCultureIgnoreCase.Compare(a.Name, b.Name);
                                 if (result == 0)
                                 {
                                     result = a.GetHashCode().CompareTo(b.GetHashCode());

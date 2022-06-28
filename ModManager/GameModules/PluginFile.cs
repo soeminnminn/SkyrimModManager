@@ -29,12 +29,18 @@ namespace ModManager.GameModules
 
         public HEDR? HEDRData { get; private set; }
 
-        private bool m_isLightExt = false;
-        public bool IsLight
+        public bool HasLightFlag
         {
             get {
-                return (this.Header != null && ((this.Header.Flags & 0x200) != 0)) ||
-                        this.m_isLightExt;
+                return (this.Header != null && ((this.Header.Flags & 0x200) != 0));
+            }
+        }
+
+        public bool HasMasterFlag
+        {
+            get
+            {
+                return (this.Header != null && ((this.Header.Flags & 0x1) != 0));
             }
         }
 
@@ -52,7 +58,6 @@ namespace ModManager.GameModules
             if (!string.IsNullOrEmpty(path))
             {
                 this.File = new FileInfo(path);
-                this.m_isLightExt = GameSettings.UnGhost(this.File.Name).ToLower().EndsWith(".esl");
             }
         }
 
@@ -60,7 +65,6 @@ namespace ModManager.GameModules
         {
             this.GameId = gameId;
             this.File = file;
-            this.m_isLightExt = GameSettings.UnGhost(file.Name).ToLower().EndsWith(".esl");
         }
 
         public void Parse(bool headerOnly = true, bool parseSubRecords = false)

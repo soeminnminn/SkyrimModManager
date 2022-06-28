@@ -5,6 +5,9 @@ Skyrim Modules Manager
 
 ## Change Log
 
+#### Version 3.1.0.0
+- Fix Load order
+
 #### Version 3.0.0.0
 - Add Module information view.
 - Add check master file missing.
