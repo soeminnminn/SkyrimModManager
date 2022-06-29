@@ -6,6 +6,7 @@ namespace ModManager.GameModules
 {
     public class PluginInfo : IComparable<PluginInfo>
     {
+        #region Constructor
         public PluginInfo(PluginFile plugin, GameSettings settings, int pluginsTxtIdx)
         {
             if (plugin.File != null)
@@ -57,7 +58,9 @@ namespace ModManager.GameModules
                 this.Localized = plugin.Localized;
             }
         }
+        #endregion
 
+        #region Properties
         public string OriginalName { get; private set; } = string.Empty;
 
         public string Name { get; private set; } = string.Empty;
@@ -101,9 +104,13 @@ namespace ModManager.GameModules
         public int LoadOrderTxtIndex { get; private set; } = int.MaxValue;
 
         public bool MissingMaster { get; private set; }
+        #endregion
 
-        public bool IsDepandOn(PluginInfo other)
+        #region Methods
+        public bool IsDepandOn(PluginInfo? other)
         {
+            if (other == null) return false;
+
             if (this.Dependencies.Length > 0)
             {
                 return this.Dependencies.Contains(other.Name,
@@ -190,7 +197,9 @@ namespace ModManager.GameModules
             }
             return result;
         }
+        #endregion
 
+        #region Operators
         // Define the is greater than operator.
         public static bool operator >(PluginInfo operand1, PluginInfo operand2)
         {
@@ -214,5 +223,6 @@ namespace ModManager.GameModules
         {
             return operand1.CompareTo(operand2) <= 0;
         }
+        #endregion
     }
 }

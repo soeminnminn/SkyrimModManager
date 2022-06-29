@@ -8,13 +8,16 @@ namespace ModManager.Models
 {
     public class ListItemModel : INotifyPropertyChanged
     {
+        #region Variables
         private bool mIsEnabled = false;
 
         private bool mIsFound = false;
         private bool mIsSystem = false;
 
         public event PropertyChangedEventHandler? PropertyChanged;
+        #endregion
 
+        #region Constructor
         public ListItemModel()
         {
         }
@@ -25,7 +28,9 @@ namespace ModManager.Models
             this.Index = index;
             this.Name = string.Format("Item {0}", index);
         }
+        #endregion
 
+        #region Properties
         [JsonIgnore()]
         public int Index { get; set; } = -1;
 
@@ -61,7 +66,7 @@ namespace ModManager.Models
             {
                 if (value == this.mIsEnabled) return;
                 this.mIsEnabled = value;
-                this.OnPropertyChanged();
+                this.OnPropertyChanged("IsEnabled");
             }
         }
 
@@ -72,7 +77,7 @@ namespace ModManager.Models
             {
                 if (value == this.mIsFound) return;
                 this.mIsFound = value;
-                this.OnPropertyChanged();
+                this.OnPropertyChanged("IsFound");
             }
         }
 
@@ -83,7 +88,7 @@ namespace ModManager.Models
             {
                 if (value == this.mIsSystem) return;
                 this.mIsSystem = value;
-                this.OnPropertyChanged();
+                this.OnPropertyChanged("IsSystem");
             }
         }
 
@@ -101,7 +106,9 @@ namespace ModManager.Models
         {
             get => IsFound && !MasterMissing;
         }
+        #endregion
 
+        #region Methods
         protected virtual void OnPropertyChanged(string? propertyName = null)
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -111,5 +118,6 @@ namespace ModManager.Models
         {
             return this.Name;
         }
+        #endregion
     }
 }

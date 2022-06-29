@@ -6,21 +6,25 @@ using System.Linq;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using System.ComponentModel;
+using System.Text;
 using GongSolutions.Wpf.DragDrop;
 using ModManager.Models;
 using ModManager.GameModules;
-using System.Text;
 
 namespace ModManager.ViewModels
 {
     public class MainViewModel : DefaultDropHandler
     {
+        #region Variables
         private Config? config;
         private Formatter? formatter;
         private FileInfo? mPluginFile;
         private string mOrigData = string.Empty;
         private bool mHasChanged = false;
+        #endregion
 
+        #region Constructor
         public MainViewModel() 
         {
             List<ListItemModel> list = new List<ListItemModel>();
@@ -43,7 +47,33 @@ namespace ModManager.ViewModels
             this.Data = new ObservableCollection<ListItemModel>();
             this.Data.CollectionChanged += this.Data_CollectionChanged;
         }
+        #endregion
 
+        #region Properties
+        public List<string> Comments { get; private set; } = new List<string>();
+
+        public ObservableCollection<ListItemModel> Data { get; private set; }
+
+        public bool IsValid
+        {
+            get => this.config != null && this.mPluginFile != null && !string.IsNullOrEmpty(this.mOrigData);
+        }
+
+        public bool HasChanged
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(this.mOrigData)) return false;
+
+                var list = this.Data.ToList();
+                var d = JsonSerializer.Serialize(list);
+                if (d != this.mOrigData) return true;
+                return mHasChanged;
+            }
+        }
+        #endregion
+
+        #region Methods
         public bool Load()
         {
             if (this.config == null) 
@@ -144,11 +174,17 @@ namespace ModManager.ViewModels
                         }); ;
                     }
                     list.Sort(new ListItemModelComparer());
+                    foreach (var item in list)
+                    {
+                        item.PropertyChanged += Item_PropertyChanged;
+                    }
 
                     this.mOrigData = JsonSerializer.Serialize(list);
                     this.Data = new ObservableCollection<ListItemModel>(list);
                     this.mHasChanged = false;
                     this.Data.CollectionChanged += this.Data_CollectionChanged;
+
+                    
 
                     return true;
                 }
@@ -190,26 +226,31 @@ namespace ModManager.ViewModels
             return list;
         }
 
+        private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "IsEnabled")
+            {
+                var item = sender as ListItemModel;
+                if (item != null && item.Info != null)
+                {
+                    foreach (var m in this.Data)
+                    {
+                        if (item.IsEnabled && item.Info.IsDepandOn(m.Info) && !m.IsEnabled)
+                        {
+                            m.IsEnabled = true;
+                        }
+                        else if (!item.IsEnabled && m.Info?.IsDepandOn(item.Info) == true)
+                        {
+                            m.IsEnabled = false;
+                        }
+                    }
+                }
+            }
+        }
+
         private void Data_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             this.mHasChanged = true;
-        }
-
-        public bool IsValid
-        {
-            get => this.config != null && this.mPluginFile != null && !string.IsNullOrEmpty(this.mOrigData);
-        }
-
-        public bool HasChanged
-        {
-            get {
-                if (string.IsNullOrEmpty(this.mOrigData)) return false;
-                
-                var list = this.Data.ToList();
-                var d = JsonSerializer.Serialize(list);
-                if (d != this.mOrigData) return true;
-                return mHasChanged;
-            }
         }
 
         public bool Save()
@@ -329,10 +370,6 @@ namespace ModManager.ViewModels
             return false;
         }
 
-        public List<string> Comments { get; private set; } = new List<string>();
-
-        public ObservableCollection<ListItemModel> Data { get; private set; }
-
         public override void DragOver(IDropInfo dropInfo)
         {
             var targetItem = dropInfo.TargetItem as ListItemModel;
@@ -350,7 +387,9 @@ namespace ModManager.ViewModels
         {
             base.Drop(dropInfo);
         }
-    
+        #endregion
+
+        #region Nested Types
         public class ListItemModelComparer : IComparer<ListItemModel>
         {
             public int Compare(ListItemModel? a, ListItemModel? b)
@@ -369,5 +408,6 @@ namespace ModManager.ViewModels
                 return result;
             }
         }
+        #endregion
     }
 }

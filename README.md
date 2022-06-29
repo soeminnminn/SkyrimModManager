@@ -5,6 +5,9 @@ Skyrim Modules Manager
 
 ## Change Log
 
+#### Version 3.2.0.0
+- Add auto enable masters.
+
 #### Version 3.1.0.0
 - Fix Load order
 

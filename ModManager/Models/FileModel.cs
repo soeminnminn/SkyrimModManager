@@ -6,12 +6,15 @@ namespace ModManager.Models
 {
     internal class FileModel
     {
+        #region Properties
         public string Name { get; set; } = string.Empty;
 
         public string Path { get; set; } = string.Empty;
 
         public string Date { get; set; } = string.Empty;
+        #endregion
 
+        #region Constructor
         public FileModel()
         {
         }
@@ -22,7 +25,9 @@ namespace ModManager.Models
             this.Path = file.FullName;
             this.Date = file.LastWriteTime.ToString("g");
         }
+        #endregion
 
+        #region Methods
         public static FileModel Fake()
         {
             var fileModel = new FileModel();
@@ -31,5 +36,6 @@ namespace ModManager.Models
 
             return fileModel;
         }
+        #endregion
     }
 }

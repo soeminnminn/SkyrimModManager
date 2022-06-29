@@ -201,12 +201,13 @@ namespace ModManager
             if (item != null && item.Info != null)
             {
                 var recordFlags = string.Empty;
-                if (item.Info.ESM || item.Info.HasMasterFlag)
-                    recordFlags += "ESM" + Environment.NewLine;
-                if (item.Info.ESL || item.Info.HasLightFlag)
+                if (item.Info.HasLightFlag)
                     recordFlags += "ESL" + Environment.NewLine;
-                if (item.Info.ESU)
+                else if (item.Info.HasMasterFlag)
+                    recordFlags += "ESM" + Environment.NewLine;
+                else if (item.Info.ESU)
                     recordFlags += "ESU" + Environment.NewLine;
+                
                 if (item.Info.Localized)
                     recordFlags += "Localized" + Environment.NewLine;
 
