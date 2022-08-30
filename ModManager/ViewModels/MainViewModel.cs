@@ -118,7 +118,7 @@ namespace ModManager.ViewModels
                     var list = new List<ListItemModel>();
                     foreach(var sysMod in systemMods)
                     {
-                        if (moduleNames.Contains(sysMod))
+                        if (moduleNames.Contains(sysMod, StringComparer.InvariantCultureIgnoreCase))
                         {
                             var info = modules.Find(x => x.OriginalName.Equals(sysMod, StringComparison.InvariantCultureIgnoreCase));
                             list.Add(new ListItemModel 
@@ -159,7 +159,7 @@ namespace ModManager.ViewModels
                     }
                     
                     var namesList = list.ConvertAll(x => x.Name);
-                    var notInList = moduleNames.Where(x => !namesList.Contains(x)).ToList();
+                    var notInList = moduleNames.Where(x => !namesList.Contains(x, StringComparer.InvariantCultureIgnoreCase)).ToList();
                     foreach(var m in notInList)
                     {
                         var info = modules.Find(x => x.OriginalName.Equals(m, StringComparison.InvariantCultureIgnoreCase));
@@ -173,7 +173,32 @@ namespace ModManager.ViewModels
                             IsFound = true
                         }); ;
                     }
-                    list.Sort(new ListItemModelComparer());
+
+                    if (config.HideCreationClub)
+                    {
+                        list = list.FindAll(x => !x.IsSystem).ToList();
+                    }
+                    
+                    list.Sort((a, b) => {
+                        var result = 0;
+                        if (a != null && b == null) result = -1;
+                        if (a == null && b != null) result = 1;
+
+                        if (result == 0 && a != null && b != null)
+                        {
+                            if (!a.HasError && b.HasError) result = -1;
+                            if (a.HasError && !b.HasError) result = 1;
+                            if (!a.HasError && !b.HasError)
+                            {
+                                if (a.Info != null && b.Info == null) result = -1;
+                                if (a.Info == null && b.Info != null) result = 1;
+
+                                if (result == 0 && a.Info != null) result = a.Info.CompareTo(b.Info);
+                            }
+                        }
+                        return result;
+                    });
+
                     foreach (var item in list)
                     {
                         item.PropertyChanged += Item_PropertyChanged;
@@ -183,8 +208,6 @@ namespace ModManager.ViewModels
                     this.Data = new ObservableCollection<ListItemModel>(list);
                     this.mHasChanged = false;
                     this.Data.CollectionChanged += this.Data_CollectionChanged;
-
-                    
 
                     return true;
                 }
@@ -390,24 +413,6 @@ namespace ModManager.ViewModels
         #endregion
 
         #region Nested Types
-        public class ListItemModelComparer : IComparer<ListItemModel>
-        {
-            public int Compare(ListItemModel? a, ListItemModel? b)
-            {
-                var result = 0;
-                if (a != null && b == null) result = -1;
-                if (a == null && b != null) result = 1;
-
-                if (result == 0 && a != null && b != null)
-                {
-                    if (a.Info != null && b.Info == null) result = -1;
-                    if (a.Info == null && b.Info != null) result = 1;
-
-                    if (result == 0 && a.Info != null) result = a.Info.CompareTo(b.Info);
-                }                
-                return result;
-            }
-        }
         #endregion
     }
 }

@@ -12,7 +12,7 @@
         Title="{DynamicResource AppNameString}" 
         Icon="/Images/skyrimicon.ico"
         WindowStartupLocation="CenterScreen"
-        Height="600" Width="700"
+        Height="600" Width="750"
 		MinWidth="650" MinHeight="250"
         ResizeMode="CanResizeWithGrip" >
 

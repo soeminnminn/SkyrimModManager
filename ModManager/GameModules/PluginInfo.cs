@@ -149,20 +149,20 @@ namespace ModManager.GameModules
 
             if (a.Name == b.Name) return 0;
 
-            if (a.IsSystemMaster) return -1;
-            if (b.IsSystemMaster) return 1;
+            if (a.IsSystemMaster && !b.IsSystemMaster) return -1;
+            if (!a.IsSystemMaster && b.IsSystemMaster) return 1;
 
-            if (a.IsImplicit) return -1;
-            if (b.IsImplicit) return 1;
+            if (a.IsImplicit && !b.IsImplicit) return -1;
+            if (!a.IsImplicit && b.IsImplicit) return 1;
 
-            if (a.HasMasterFlag) return -1;
-            if (b.HasMasterFlag) return 1;
+            if (a.HasMasterFlag && !b.HasMasterFlag) return -1;
+            if (!a.HasMasterFlag && b.HasMasterFlag) return 1;
 
-            if (b.MissingMaster) return -1;
-            if (a.MissingMaster) return 1;
+            if (!a.MissingMaster && b.MissingMaster) return -1;
+            if (a.MissingMaster && !b.MissingMaster) return 1;
 
-            if (b.IsDepandOn(a)) return -1;
-            if (a.IsDepandOn(b)) return 1;
+            if (!a.IsDepandOn(b) && b.IsDepandOn(a)) return -1;
+            if (a.IsDepandOn(b) && !b.IsDepandOn(a)) return 1;
 
             var result = a.OfficialIndex.CompareTo(b.OfficialIndex);
             if (result == 0)

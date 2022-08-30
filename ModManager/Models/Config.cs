@@ -13,6 +13,7 @@ namespace ModManager.Models
 {
     public class Config
     {
+        #region Variables
         private static string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         private static string appDataConfigDir = string.Empty;
 
@@ -100,16 +101,21 @@ namespace ModManager.Models
                 return appDataConfigDir;
             }
         }
+        #endregion
 
+        #region Constructor
         public Config()
         { 
-        }         
+        }
+        #endregion
 
+        #region Static Methods
         private static Config GetDefaultConfig()
         {
             var config = new Config
             {
                 Name = "Skyrim Special Edition",
+                HideCreationClub = true,
 #if DEBUG
                 PluginFile = @"Plugins.txt",
 #else
@@ -196,7 +202,9 @@ namespace ModManager.Models
             defConfig.Initialize();
             return defConfig;
         }
+        #endregion
 
+        #region Properties
         [JsonIgnore]
         public GameSettings? Settings { get; private set; }
 
@@ -244,6 +252,11 @@ namespace ModManager.Models
         [JsonPropertyName("gamePath")]
         public InstallFolderPath? InstallFolder { get; set; }
 
+        [JsonPropertyName("hideCC")]
+        public bool HideCreationClub { get; set; }
+        #endregion
+
+        #region Methods
         private void Initialize()
         {
             if (this.InstallFolder != null)
@@ -311,7 +324,9 @@ namespace ModManager.Models
             var dirInfo = new DirectoryInfo(this.Settings.PluginsDirectory);
             return this.IsModulesDataDir(dirInfo) ? dirInfo : null;
         }
+        #endregion
 
+        #region Nested Types
         public class InstallFolderPath
         {
             [JsonPropertyName("path")]
@@ -329,5 +344,6 @@ namespace ModManager.Models
             [JsonPropertyName("key")]
             public string? KeyName { get; set; }
         }
+        #endregion
     }
 }
