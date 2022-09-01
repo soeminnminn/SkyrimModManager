@@ -114,6 +114,8 @@ namespace ModManager.Models
         {
             var config = new Config
             {
+                // Skyrim
+                // Fallout4
                 Name = "Skyrim Special Edition",
                 HideCreationClub = true,
 #if DEBUG

@@ -8,8 +8,8 @@
 	-->
 	
 	<!-- App and Window Strings -->
-	<System:String x:Key="AppNameString">Skyrim Mods Manager</System:String>
-    <System:String x:Key="MainWindowTitleString">Skyrim Mods Manager</System:String>
+    <System:String x:Key="AppNameString">Bethesda Mods Manager</System:String>
+    <System:String x:Key="MainWindowTitleString">Bethesda Mods Manager</System:String>
     <System:String x:Key="BackupWindowTitleString">Backup &amp; Restore</System:String>
 	<System:String x:Key="AboutWindowTitleString">About - {0}</System:String>
 	
