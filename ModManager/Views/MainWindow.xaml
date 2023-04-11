@@ -1,4 +1,4 @@
-﻿<Window x:Class="ModManager.MainWindow"
+﻿<Window x:Class="ModManager.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,6 +7,7 @@
         xmlns:local="clr-namespace:ModManager"
         xmlns:models="clr-namespace:ModManager.Models"
         xmlns:viewModels="clr-namespace:ModManager.ViewModels"
+        xmlns:toggleSwitch="clr-namespace:ModManager.ToggleSwitch"
         d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
         mc:Ignorable="d"
         Title="{DynamicResource AppNameString}" 
@@ -64,7 +65,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="32" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Height="24" Width="30" dd:DragDrop.DragSourceIgnore="{Binding IsSystem}" Cursor="SizeAll">
                             <Path Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}"
@@ -74,10 +75,13 @@
                             <TextBlock Margin="6 0 0 0" VerticalAlignment="Center" Text="{Binding Name}" />
                             <TextBlock Margin="6 0 0 0" Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorMessage}" />
                         </StackPanel>
-                        <CheckBox Grid.Column="2" VerticalAlignment="Center" 
+
+                        <toggleSwitch:HorizontalToggleSwitch Grid.Column="2" VerticalAlignment="Center" 
                                 Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}" 
                                 IsEnabled="{Binding CanCheck}" 
-                                IsChecked="{Binding IsEnabled}" />
+                                IsChecked="{Binding IsEnabled}"
+                                Style="{StaticResource RoundedToggleSwitchStyle}">
+                        </toggleSwitch:HorizontalToggleSwitch>
                     </Grid>
                 </Border>
             </DataTemplate>

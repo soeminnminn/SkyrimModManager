@@ -148,9 +148,9 @@ namespace ModManager
 
         public class Item
         {
-            public string? Data { get; set; }
+            public string Data { get; set; }
 
-            public string? Source { get; set; }
+            public string Source { get; set; }
 
             public bool IsEnabled { get; set; } = false;
 

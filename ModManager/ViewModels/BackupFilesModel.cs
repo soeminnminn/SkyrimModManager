@@ -9,7 +9,7 @@ namespace ModManager.ViewModels
     internal class BackupFilesModel
     {
         public ObservableCollection<FileModel> Data { get; private set; }
-        private Config? config;
+        private Config config;
 
         public BackupFilesModel()
         {

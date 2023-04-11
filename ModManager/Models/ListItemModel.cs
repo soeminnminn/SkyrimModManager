@@ -14,7 +14,7 @@ namespace ModManager.Models
         private bool mIsFound = false;
         private bool mIsSystem = false;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
         #endregion
 
         #region Constructor
@@ -52,7 +52,7 @@ namespace ModManager.Models
         }
 
         [JsonIgnore()]
-        public PluginInfo? Info { get; set; }
+        public PluginInfo Info { get; set; }
 
         public bool HasError
         {
@@ -109,7 +109,7 @@ namespace ModManager.Models
         #endregion
 
         #region Methods
-        protected virtual void OnPropertyChanged(string? propertyName = null)
+        protected virtual void OnPropertyChanged(string propertyName = null)
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

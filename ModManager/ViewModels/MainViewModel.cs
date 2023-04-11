@@ -17,9 +17,9 @@ namespace ModManager.ViewModels
     public class MainViewModel : DefaultDropHandler
     {
         #region Variables
-        private Config? config;
-        private Formatter? formatter;
-        private FileInfo? mPluginFile;
+        private Config config;
+        private Formatter formatter;
+        private FileInfo mPluginFile;
         private string mOrigData = string.Empty;
         private bool mHasChanged = false;
         #endregion
@@ -249,7 +249,7 @@ namespace ModManager.ViewModels
             return list;
         }
 
-        private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "IsEnabled")
             {
@@ -271,7 +271,7 @@ namespace ModManager.ViewModels
             }
         }
 
-        private void Data_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        private void Data_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             this.mHasChanged = true;
         }
@@ -342,7 +342,7 @@ namespace ModManager.ViewModels
             return false;
         }
 
-        public bool Restore(string? filePath)
+        public bool Restore(string filePath)
         {
             var configDir = Config.AppDataConfigDir;
             if (!string.IsNullOrEmpty(configDir) && !string.IsNullOrEmpty(this.config?.Name))
@@ -352,7 +352,7 @@ namespace ModManager.ViewModels
                     var dirInfo = new DirectoryInfo(Path.Combine(configDir, "Backup", this.config.Name));
                     if (!dirInfo.Exists) return false;
 
-                    FileInfo? fileInfo = null;
+                    FileInfo fileInfo = null;
                     if (filePath == null)
                     {
                         var files = dirInfo.GetFiles("*.txt");

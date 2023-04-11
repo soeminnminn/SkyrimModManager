@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <UseWPF>true</UseWPF>
 	<UICulture>en-US</UICulture>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -19,6 +19,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>none</DebugType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ToggleSwitch\Icons\**" />
+    <EmbeddedResource Remove="ToggleSwitch\Icons\**" />
+    <None Remove="ToggleSwitch\Icons\**" />
+    <Page Remove="ToggleSwitch\Icons\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="6.0.4" />

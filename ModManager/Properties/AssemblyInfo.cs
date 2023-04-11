@@ -9,7 +9,7 @@ using System.Windows;
                                               // app, or any theme specific resource dictionaries)
 )]
 
-[assembly: System.Reflection.AssemblyTitle("ModManager")]
+[assembly: System.Reflection.AssemblyTitle("Mod Manager")]
 [assembly: System.Reflection.AssemblyDescription("TES 4, 5 Plugin Editor")]
 // [assembly: System.Reflection.AssemblyConfiguration("")]
 [assembly: System.Reflection.AssemblyCompany("S16 Co. Ltd.")]
@@ -36,5 +36,5 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: System.Reflection.AssemblyVersion("3.3.0.0")]
-[assembly: System.Reflection.AssemblyFileVersion("3.3.0.0")]
+[assembly: System.Reflection.AssemblyVersion("3.4.0.0")]
+[assembly: System.Reflection.AssemblyFileVersion("3.4.0.0")]

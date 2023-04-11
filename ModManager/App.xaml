@@ -2,33 +2,14 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ModManager"
-             StartupUri="MainWindow.xaml">
+             StartupUri="Views/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Lang/Lang.en-US.xaml" />
+                <ResourceDictionary Source="ToggleSwitch/ToggleSwitch.xaml" />
+                <ResourceDictionary Source="Themes/Generic.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
-            <Style x:Key="DefaultListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
-                <Setter Property="Padding" Value="2" />
-            </Style>
-
-            <Style x:Key="DefaultListBoxStyle" TargetType="{x:Type ListBox}">
-                <Setter Property="ItemContainerStyle" Value="{StaticResource DefaultListBoxItemStyle}" />
-                <Setter Property="Margin" Value="4" />
-                <Setter Property="SelectionMode" Value="Extended" />
-            </Style>
-
-            <Style x:Key="DefaultButtonStyle" TargetType="Button">
-                <Setter Property="Margin" Value="8"/>
-                <Setter Property="Width" Value="100" />
-                <Style.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="8"/>
-                    </Style>
-                </Style.Resources>
-            </Style>
-            <Geometry x:Key="DragIcon">M7,19V17H9V19H7M11,19V17H13V19H11M15,19V17H17V19H15M7,15V13H9V15H7M11,15V13H13V15H11M15,15V13H17V15H15M7,11V9H9V11H7M11,11V9H13V11H11M15,11V9H17V11H15M7,7V5H9V7H7M11,7V5H13V7H11M15,7V5H17V7H15Z</Geometry>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

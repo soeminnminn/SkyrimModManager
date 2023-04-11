@@ -208,10 +208,10 @@ namespace ModManager.Models
 
         #region Properties
         [JsonIgnore]
-        public GameSettings? Settings { get; private set; }
+        public GameSettings Settings { get; private set; }
 
         [JsonPropertyName("name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
         [JsonIgnore]
         public string AppDataPath { get => appDataPath; }
@@ -249,10 +249,10 @@ namespace ModManager.Models
         }
 
         [JsonPropertyName("plugin")]
-        public string? PluginFile { get; set; }
+        public string PluginFile { get; set; }
 
         [JsonPropertyName("gamePath")]
-        public InstallFolderPath? InstallFolder { get; set; }
+        public InstallFolderPath InstallFolder { get; set; }
 
         [JsonPropertyName("hideCC")]
         public bool HideCreationClub { get; set; }
@@ -292,10 +292,10 @@ namespace ModManager.Models
             } 
         }
 
-        public FileInfo? GetPluginFile()
+        public FileInfo GetPluginFile()
         {
             if (this.Settings == null) return null;
-            FileInfo? fileInfo = null;
+            FileInfo fileInfo = null;
             if (!string.IsNullOrEmpty(this.PluginFile))
             {
                 fileInfo = new FileInfo(this.PluginFile);
@@ -320,7 +320,7 @@ namespace ModManager.Models
             return false;
         }
 
-        public DirectoryInfo? GetModulesDataDir()
+        public DirectoryInfo GetModulesDataDir()
         {
             if (this.Settings == null) return null;
             var dirInfo = new DirectoryInfo(this.Settings.PluginsDirectory);
@@ -332,19 +332,19 @@ namespace ModManager.Models
         public class InstallFolderPath
         {
             [JsonPropertyName("path")]
-            public string? Path { get; set; }
+            public string Path { get; set; }
 
             [JsonPropertyName("registry")]
-            public RegistryPath? Registry { get; set; }
+            public RegistryPath Registry { get; set; }
         }
 
         public class RegistryPath
         {
             [JsonPropertyName("path")]
-            public string? Path { get; set; }
+            public string Path { get; set; }
 
             [JsonPropertyName("key")]
-            public string? KeyName { get; set; }
+            public string KeyName { get; set; }
         }
         #endregion
     }

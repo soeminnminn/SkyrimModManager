@@ -7,16 +7,16 @@ using System.Windows.Input;
 using System.Threading;
 using System.Windows.Controls;
 
-namespace ModManager
+namespace ModManager.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
-        private MainViewModel? viewModel;
-        private BackgroundWorker? workerLoad;
-        private BackgroundWorker? workerRestore;
+        private MainViewModel viewModel;
+        private BackgroundWorker workerLoad;
+        private BackgroundWorker workerRestore;
 
         public MainWindow()
         {
@@ -63,7 +63,7 @@ namespace ModManager
             }
         }
 
-        private void WorkerLoad_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
+        private void WorkerLoad_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             this.statusMessage.Text = LocalizedStrings.MessageReadyString;
             this.EnableControls(true);
@@ -79,14 +79,14 @@ namespace ModManager
             }
         }
 
-        private void WorkerLoad_DoWork(object? sender, DoWorkEventArgs e)
+        private void WorkerLoad_DoWork(object sender, DoWorkEventArgs e)
         {
             var model = e.Argument as MainViewModel;
             e.Result = model?.Load();
             Thread.Sleep(100);
         }
 
-        private void WorkerRestore_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
+        private void WorkerRestore_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             this.statusMessage.Text = LocalizedStrings.MessageReadyString;
             this.EnableControls(true);
@@ -97,9 +97,9 @@ namespace ModManager
             }
         }
 
-        private void WorkerRestore_DoWork(object? sender, DoWorkEventArgs e)
+        private void WorkerRestore_DoWork(object sender, DoWorkEventArgs e)
         {
-            string? fileName = e.Argument as string;
+            string fileName = e.Argument as string;
             e.Result = this.viewModel?.Restore(fileName);
             Thread.Sleep(100);
         }
@@ -191,8 +191,11 @@ namespace ModManager
 
         private void AboutCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            MessageBox.Show(this, LocalizedStrings.AboutString, string.Format(LocalizedStrings.AboutWindowTitleString, this.Title),
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            var dialog = new AboutDialog()
+            {
+                Owner = this
+            };
+            dialog.ShowDialog();
         }
 
         private void ModsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

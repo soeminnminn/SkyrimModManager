@@ -4,14 +4,14 @@ using System.Windows.Input;
 using ModManager.Models;
 using ModManager.ViewModels;
 
-namespace ModManager
+namespace ModManager.Views
 {
     /// <summary>
     /// Interaction logic for BackupWindow.xaml
     /// </summary>
     public partial class BackupWindow : Window
     {
-        private BackupFilesModel? viewModel;
+        private BackupFilesModel viewModel;
 
         public BackupWindow()
         {

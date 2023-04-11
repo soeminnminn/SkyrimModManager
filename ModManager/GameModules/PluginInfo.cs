@@ -107,7 +107,7 @@ namespace ModManager.GameModules
         #endregion
 
         #region Methods
-        public bool IsDepandOn(PluginInfo? other)
+        public bool IsDepandOn(PluginInfo other)
         {
             if (other == null) return false;
 
@@ -140,7 +140,7 @@ namespace ModManager.GameModules
             return this.OriginalName;
         }
 
-        public int CompareTo(PluginInfo? other)
+        public int CompareTo(PluginInfo other)
         {
             if (other == null) return -1;
 

@@ -8,7 +8,7 @@ namespace ModManager.GameModules
         public LoadOrderComparer()
         { }
 
-        public int Compare(PluginInfo? a, PluginInfo? b)
+        public int Compare(PluginInfo a, PluginInfo b)
         {
             var result = 0;
             if (a != null && b == null) result = -1;

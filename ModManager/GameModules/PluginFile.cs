@@ -8,11 +8,11 @@ namespace ModManager.GameModules
 {
     public class PluginFile
     {
-        public FileInfo? File = null;
+        public FileInfo File = null;
         
         public GameID GameId { get; private set; }
 
-        public Record? Header { get; private set; }
+        public Record Header { get; private set; }
 
         public bool IsValid
         {
