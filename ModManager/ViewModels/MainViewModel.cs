@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Windows;
 using System.ComponentModel;
 using System.Text;
-using GongSolutions.Wpf.DragDrop;
+using DragDrop;
 using ModManager.Models;
 using ModManager.GameModules;
 

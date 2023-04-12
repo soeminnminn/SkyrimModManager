@@ -21,18 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="ToggleSwitch\Icons\**" />
-    <EmbeddedResource Remove="ToggleSwitch\Icons\**" />
-    <None Remove="ToggleSwitch\Icons\**" />
-    <Page Remove="ToggleSwitch\Icons\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="6.0.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\GongSolutions.WPF.DragDrop\GongSolutions.WPF.DragDrop.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Images\skyrimlogo.png" />
+    <Resource Include="Images\*.png" />
   </ItemGroup>
 
 </Project>

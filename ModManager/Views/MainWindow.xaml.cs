@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Windows;
-using ModManager.ViewModels;
-using ModManager.Models;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Threading;
 using System.Windows.Controls;
+using ModManager.ViewModels;
+using ModManager.Models;
 
 namespace ModManager.Views
 {
