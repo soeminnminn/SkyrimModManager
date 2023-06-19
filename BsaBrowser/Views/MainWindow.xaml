@@ -1,0 +1,114 @@
+﻿<Window x:Class="BsaBrowser.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BsaBrowser"
+        xmlns:convert="clr-namespace:BsaBrowser.Converters"
+        xmlns:ctrl="clr-namespace:BsaBrowser.Controls"
+        mc:Ignorable="d"
+        Title="{Binding Title}" 
+        Icon="/icon.ico" 
+        MinHeight="450" MinWidth="800"
+        Height="450" Width="900" 
+        ResizeMode="CanResizeWithGrip"
+        AllowDrop="True"
+        DragEnter="Window_DragEnter"
+        Drop="Window_Drop" >
+
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Open" CanExecute="OpenCommand_CanExecute" Executed="OpenCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.Close" CanExecute="CloseCommand_CanExecute" Executed="CloseCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.Copy" CanExecute="CopyCommand_CanExecute" Executed="CopyCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.Find" CanExecute="FindCommand_CanExecute" Executed="FindCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.Save" CanExecute="ExtractCommand_CanExecute" Executed="ExtractCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.SaveAs" CanExecute="ExtractAllCommand_CanExecute" Executed="ExtractAllCommand_Executed" />
+        <CommandBinding Command="local:RoutedCommands.Exit" Executed="ExitCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.Help" Executed="AboutCommand_Executed" />
+    </Window.CommandBindings>
+
+    <Window.InputBindings>
+        <KeyBinding Command="ApplicationCommands.Close" Key="W" Modifiers="Ctrl" />
+        <KeyBinding Command="ApplicationCommands.SaveAs" Key="S" Modifiers="Ctrl+Shift" />
+        <KeyBinding Command="local:RoutedCommands.Exit" Key="Q" Modifiers="Ctrl" />
+    </Window.InputBindings>
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="GrayTextBrush" Color="{x:Static SystemColors.GrayTextColor}" />
+        <convert:FileIconConverter x:Key="FileIconConverter" />
+    </Window.Resources>
+    
+    <DockPanel>
+        <Menu DockPanel.Dock="Top" IsMainMenu="True">
+            <MenuItem Header="_File">
+                <MenuItem Command="ApplicationCommands.Open">
+                    <MenuItem.Icon>
+                        <Image Source="{StaticResource OpenFolder_16x}"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Command="ApplicationCommands.Close" InputGestureText="Ctrl+W" />
+                <Separator />
+                <MenuItem Header="E_xit" Command="local:RoutedCommands.Exit" InputGestureText="Ctrl+Q" />
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Command="ApplicationCommands.Copy">
+                    <MenuItem.Icon>
+                        <Image Source="{StaticResource Copy_16x}"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="E_xtract..." Command="ApplicationCommands.Save">
+                    <MenuItem.Icon>
+                        <Image Source="{StaticResource ExtractMethod_16x}"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Extract _all..." Command="ApplicationCommands.SaveAs" InputGestureText="Ctrl+Shift+S" />
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About" Command="ApplicationCommands.Help">
+                    <MenuItem.Icon>
+                        <Image Source="{StaticResource StatusHelp_16x}"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+        
+        <ToolBarPanel DockPanel.Dock="Top">
+            <Grid HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ToolBar ToolBarTray.IsLocked="True">
+                    <Button Command="ApplicationCommands.Open" ToolTip="Open">
+                        <Image Source="{StaticResource OpenFolder_16x}" Width="16" />
+                    </Button>
+                    <Separator />
+                    <Button Command="ApplicationCommands.Copy" ToolTip="Copy">
+                        <Image Source="{StaticResource Copy_16x}" Width="16" />
+                    </Button>
+                    <Button Command="ApplicationCommands.Save" ToolTip="Extract">
+                        <Image Source="{StaticResource ExtractMethod_16x}" Width="16" />
+                    </Button>
+                    <Separator />
+                    <Button Command="ApplicationCommands.Help" ToolTip="About">
+                        <Image Source="{StaticResource StatusHelp_16x}" Width="16" />
+                    </Button>
+                </ToolBar>
+                <ToolBar Grid.Column="1" ToolBarTray.IsLocked="True" VerticalContentAlignment="Center">
+                    <ctrl:SearchTextBox x:Name="searchBox" Width="180" IsEnabled="{Binding IsHasFiles}" Command="{Binding SearchCommand}" />
+                </ToolBar>
+            </Grid>
+        </ToolBarPanel>
+        
+        <StatusBar DockPanel.Dock="Bottom" Padding="6,0,6,0">
+            <StatusBarItem x:Name="statusFileName">
+                <TextBlock Text="{Binding FilePath}" />
+            </StatusBarItem>
+        </StatusBar>
+        
+        <Grid Margin="5,0,5,0">
+            <Frame Source="{Binding Content}" DataContext="{Binding}" Style="{StaticResource PageHolderFrameStyle}"/>
+        </Grid>
+    </DockPanel>
+</Window>

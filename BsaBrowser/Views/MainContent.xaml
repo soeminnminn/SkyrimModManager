@@ -1,0 +1,88 @@
+﻿<Page x:Class="BsaBrowser.Views.MainContent"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:ctrl="clr-namespace:BsaBrowser.Controls"
+      xmlns:arc="clr-namespace:BsaBrowser.Archive"
+      xmlns:convert="clr-namespace:BsaBrowser.Converters"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="Main Content">
+
+    <Page.Resources>
+        <convert:FileIconConverter x:Key="FileIconConverter" />
+    </Page.Resources>
+
+    <ctrl:BusyIndicator IsBusy="{Binding IsProcessing}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="250" Width="250" />
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition MinWidth="250" />
+            </Grid.ColumnDefinitions>
+
+            <ctrl:TreeListBox x:Name="treeList" SelectionMode="Single" HierarchySource="{Binding Node}" ChildrenPath="Folders" 
+                              AllowDrop="True" DragEnter="List_DragEnter" Drop="List_Drop"
+                              SelectionChanged="TreeListBox_SelectionChanged">
+                <ctrl:TreeListBox.Resources>
+                    <DataTemplate DataType="{x:Type arc:ArchiveNode}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Grid.Column="0" Source="{Binding Converter={StaticResource FileIconConverter}}" Margin="0 0 4 0"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </ctrl:TreeListBox.Resources>
+            </ctrl:TreeListBox>
+
+            <GridSplitter Grid.Column="1" Height="Auto" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" />
+
+            <ListView x:Name="listView" Grid.Column="2" ItemsSource="{Binding Nodes}" Style="{StaticResource ListViewStyle}"
+                      AllowDrop="True" DragEnter="List_DragEnter" Drop="List_Drop"
+                      SelectionChanged="ListView_SelectionChanged" MouseDoubleClick="ListView_MouseDoubleClick">
+                <ListView.View>
+                    <GridView>
+                        <GridView.Columns>
+                            <GridViewColumn Header="Name" Width="200">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="{Binding Converter={StaticResource FileIconConverter}}" Width="16" Margin="0,2,4,2"/>
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Offset" Width="120" >
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding OffsetStr}" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Size" Width="120" >
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding FileSizeStr}" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Compressed Size" Width="120" >
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding CompressedSizeStr}" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView.Columns>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+    </ctrl:BusyIndicator>
+</Page>

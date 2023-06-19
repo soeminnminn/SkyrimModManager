@@ -25,6 +25,20 @@ Skyrim Modules Manager
 #### Version 1.0.0.0
 - Intial release.
 
+-------
+
+# BSABrowser
+BSA/BA2 file browser and extractor
+
+![BSABrowser Main][2]
+
+![BSABrowser Search][3]
+
+## Change Log
+
+#### Version 1.0.0.0
+- Intial release.
+
 License
 -------
 
@@ -43,3 +57,5 @@ License
     limitations under the License.
 
 [1]: https://raw.githubusercontent.com/soeminnminn/SkyrimModManager/main/Screenshot.png
+[2]: https://raw.githubusercontent.com/soeminnminn/SkyrimModManager/main/BsaBrowser-shot-1.png
+[3]: https://raw.githubusercontent.com/soeminnminn/SkyrimModManager/main/BsaBrowser-shot-2.png
