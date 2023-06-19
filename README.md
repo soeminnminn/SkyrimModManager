@@ -5,6 +5,14 @@ Skyrim Modules Manager
 
 ## Change Log
 
+#### Version 3.4.0.0
+- Merge with dragdrop project.
+- Bug fix
+
+#### Version 3.3.0.0
+- Change CheckBox to ToggleSwitch.
+- Bug fix
+
 #### Version 3.2.0.0
 - Add auto enable masters.
 
