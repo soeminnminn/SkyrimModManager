@@ -46,12 +46,13 @@
             </Setter>
         </Style>
 
-        <Style x:Key="CaptionTabButton" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Type ToggleButton}}">
+        <Style x:Key="CaptionTabButton" TargetType="{x:Type RadioButton}" BasedOn="{StaticResource {x:Type RadioButton}}">
             <Setter Property="Padding" Value="8,0,8,0" />
             <Setter Property="Background" Value="{x:Static SystemColors.ControlBrush}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
                         <Border x:Name="Bd" Background="{TemplateBinding Background}" 
                                 BorderThickness="0,0.5,0.5,0.5" BorderBrush="{TemplateBinding BorderBrush}"
                                 Padding="{TemplateBinding Padding}">
@@ -70,10 +71,10 @@
             </Setter>
         </Style>
 
-        <Style x:Key="CaptionTabFirstButton" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource CaptionTabButton}">
+        <Style x:Key="CaptionTabFirstButton" TargetType="{x:Type RadioButton}" BasedOn="{StaticResource CaptionTabButton}">
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
                         <Border x:Name="Bd" CornerRadius="4,0,0,4" Background="{TemplateBinding Background}" 
                                 BorderThickness="0.5" BorderBrush="{TemplateBinding BorderBrush}"
                                 Padding="{TemplateBinding Padding}">
@@ -92,10 +93,10 @@
             </Setter>
         </Style>
 
-        <Style x:Key="CaptionTabLastButton" TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource CaptionTabButton}">
+        <Style x:Key="CaptionTabLastButton" TargetType="{x:Type RadioButton}" BasedOn="{StaticResource CaptionTabButton}">
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
                         <Border x:Name="Bd" CornerRadius="0,4,4,0" Background="{TemplateBinding Background}" 
                                 BorderThickness="0,0.5,0.5,0.5" BorderBrush="{TemplateBinding BorderBrush}"
                                 Padding="{TemplateBinding Padding}">
@@ -145,14 +146,14 @@
 
                                 <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,4"
                                             Visibility="{Binding Path=HasButtons, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource booleanToVisibilityConverter}}">
-                                    <ToggleButton Style="{StaticResource CaptionTabFirstButton}" 
+                                    <RadioButton Style="{StaticResource CaptionTabFirstButton}" 
                                                   Content="{Binding Path=FirstButtonText, RelativeSource={RelativeSource TemplatedParent}}" 
                                                   IsChecked="{Binding Path=IsFirstButton, RelativeSource={RelativeSource TemplatedParent}}" />
-                                    <ToggleButton Style="{StaticResource CaptionTabButton}"
+                                    <RadioButton Style="{StaticResource CaptionTabButton}"
                                                   Content="{Binding Path=SecondButtonText, RelativeSource={RelativeSource TemplatedParent}}" 
                                                   Visibility="{Binding Path=HasSecondButton, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource booleanToVisibilityConverter}}"
                                                   IsChecked="{Binding Path=IsSecondButton, RelativeSource={RelativeSource TemplatedParent}}" />
-                                    <ToggleButton Style="{StaticResource CaptionTabLastButton}" 
+                                    <RadioButton Style="{StaticResource CaptionTabLastButton}" 
                                                   Content="{Binding Path=ThirdButtonText, RelativeSource={RelativeSource TemplatedParent}}" 
                                                   IsChecked="{Binding Path=IsThirdButton, RelativeSource={RelativeSource TemplatedParent}}" />
                                 </StackPanel>
