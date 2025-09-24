@@ -18,10 +18,5 @@ namespace BsaBrowser.Wildcard
             : base(message, innerException)
         {
         }
-
-        protected WildcardPatternException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
     }
 }

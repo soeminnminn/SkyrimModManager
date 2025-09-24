@@ -50,7 +50,7 @@ namespace ICSharpCode.SharpZipLib.Encryption
 			_encrPos = ENCRYPT_BLOCK;
 
 			// Performs the equivalent of derive_key in Dr Brian Gladman's pwd2key.c
-#if NET472_OR_GREATER || NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_0_OR_GREATER
+#if NET472_OR_GREATER || NETSTANDARD2_1_OR_GREATER || NETCOREAPP2_0_OR_GREATER || NET6_0_OR_GREATER
 			var pdb = new Rfc2898DeriveBytes(key, saltBytes, KEY_ROUNDS, HashAlgorithmName.SHA1);
 #else
 			var pdb = new Rfc2898DeriveBytes(key, saltBytes, KEY_ROUNDS);

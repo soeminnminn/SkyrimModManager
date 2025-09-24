@@ -47,6 +47,7 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Command="ApplicationCommands.Close" InputGestureText="Ctrl+W" />
+                <MenuItem Header="Recent _Files" x:Name="menuRecentFiles" />
                 <Separator />
                 <MenuItem Header="E_xit" Command="local:RoutedCommands.Exit" InputGestureText="Ctrl+Q" />
             </MenuItem>
@@ -81,18 +82,18 @@
                 </Grid.ColumnDefinitions>
                 <ToolBar ToolBarTray.IsLocked="True">
                     <Button Command="ApplicationCommands.Open" ToolTip="Open">
-                        <Image Source="{StaticResource OpenFolder_16x}" Width="16" />
+                        <Image Source="{StaticResource OpenFolder_16x}" Width="18" />
                     </Button>
                     <Separator />
                     <Button Command="ApplicationCommands.Copy" ToolTip="Copy">
-                        <Image Source="{StaticResource Copy_16x}" Width="16" />
+                        <Image Source="{StaticResource Copy_16x}" Width="18" />
                     </Button>
                     <Button Command="ApplicationCommands.Save" ToolTip="Extract">
-                        <Image Source="{StaticResource ExtractMethod_16x}" Width="16" />
+                        <Image Source="{StaticResource ExtractMethod_16x}" Width="18" />
                     </Button>
                     <Separator />
                     <Button Command="ApplicationCommands.Help" ToolTip="About">
-                        <Image Source="{StaticResource StatusHelp_16x}" Width="16" />
+                        <Image Source="{StaticResource StatusHelp_16x}" Width="18" />
                     </Button>
                 </ToolBar>
                 <ToolBar Grid.Column="1" ToolBarTray.IsLocked="True" VerticalContentAlignment="Center">

@@ -1,46 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Linq;
-using System.Collections;
-using System.Runtime.InteropServices;
-
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-using ICSharpCode.SharpZipLib.Zip.Compression;
 
 namespace BsaBrowser.Archive
 {
-    internal static class Extensions
-    {
-        public static string ReadNullTerminatedString(this BinaryReader reader)
-        {
-            if (!reader.BaseStream.CanRead) return string.Empty;
-
-            StringBuilder builder = new StringBuilder();
-            char endChar = '\0';
-            char c = endChar;
-            while ((c = reader.ReadChar()) != endChar)
-            {
-                builder.Append(c);
-            }
-            return builder.ToString();
-        }
-
-        public static string ReadString(this BinaryReader reader, int charCount)
-        {
-            if (!reader.BaseStream.CanRead) return string.Empty;
-
-            string str = new string(reader.ReadChars(charCount));
-            if (str.Length > 0 && str[str.Length - 1] == '\0')
-            {
-                return str.Substring(0, str.Length - 1);
-            }
-            return str;
-        }
-    }
-
     public class ArchiveFile : IDisposable, IEnumerable, IEnumerable<ArchiveFile.FileEntry>
     {
         #region Constants
@@ -57,28 +24,18 @@ namespace BsaBrowser.Archive
 
         public const uint BA2_COMPRESS_GNRL = 0x4C524E47;
         public const uint BA2_COMPRESS_DX10 = 0x30315844;
+        public const uint BA2_COMPRESS_GNMF = 0x464D4E47;
 
-        private const uint SSE_BSA_FOLDER_INFO_SIZE = 24;
-        private const uint OB_BSA_FOLDER_INFO_SIZE = 20;
-        private const uint BSA_FILE_INFO_SIZE = 16;
+        public const uint SSE_BSA_FOLDER_INFO_SIZE = 24;
+        public const uint OB_BSA_FOLDER_INFO_SIZE = 20;
+        public const uint BSA_FILE_INFO_SIZE = 16;
         #endregion
 
         #region Variables
         private string mFilePath = null;
         private BinaryReader mReader = null;
 
-        private uint mMagic = 0;
-        private uint mVersion = 0;
-        private uint mRecordOffset = 0;
-        private uint mArchiveFlags = 0;
-        private uint mFolderCount = 0;
-        private uint mFileCount = 0;
-        private uint mFolderNameLength = 0;
-        private uint mFileNameLength = 0;
-        private uint mFileFlags = 0;
-
-        private bool mCompressed = false;
-        private bool mContainsFileNameBlobs = false;
+        private ArchiveHeader mHeader = null;
 
         private List<FileEntry> mFiles = null;
         private ArchiveNode mNode = null;
@@ -134,25 +91,8 @@ namespace BsaBrowser.Archive
             return string.Empty;
         }
 
-        private void CopyStream(Stream src, Stream dst)
-        {
-            int num;
-            byte[] buffer = new byte[0x400];
-            do
-            {
-                num = src.Read(buffer, 0, buffer.Length);
-                if (num > 0)
-                {
-                    dst.Write(buffer, 0, num);
-                }
-            }
-            while (num != 0);
-
-            dst.Seek(0L, SeekOrigin.Begin);
-        }
-
         #region Load
-        private void LoadOldBSA()
+        private void LoadBSA()
         {
             //Might be a fallout 2 dat
             this.mReader.BaseStream.Position = this.mReader.BaseStream.Length - 8;
@@ -166,11 +106,14 @@ namespace BsaBrowser.Archive
                 throw new ArgumentException("File is not a valid bsa archive.", "filePath");
             }
 
-            this.mRecordOffset = dataSize - treeSize - 8;
-            this.mReader.BaseStream.Position = this.mRecordOffset;
-            this.mFileCount = this.mReader.ReadUInt32();
+            var recordOffset = dataSize - treeSize - 8;
+            this.mHeader.recordOffset = recordOffset;
+            this.mReader.BaseStream.Position = recordOffset;
 
-            for (int i = 0; i < this.mFileCount; i++)
+            var fileCount = this.mReader.ReadUInt32();
+            this.mHeader.fileCount = fileCount;
+
+            for (int i = 0; i < fileCount; i++)
             {
                 int fileNameLen = this.mReader.ReadInt32();
                 string fullPath = this.mReader.ReadString(fileNameLen);
@@ -194,22 +137,25 @@ namespace BsaBrowser.Archive
 
         private void LoadMorrowind()
         {
-            this.mRecordOffset = this.mReader.ReadUInt32();
-            this.mFileCount = this.mReader.ReadUInt32();
+            var recordOffset = this.mReader.ReadUInt32();
+            var fileCount = this.mReader.ReadUInt32();
 
-            uint dataOffset = 12 + this.mRecordOffset + this.mFileCount * 8;
-            for (int i = 0; i < this.mFileCount; i++)
+            this.mHeader.recordOffset = recordOffset;
+            this.mHeader.fileCount = fileCount;
+
+            uint dataOffset = 12 + recordOffset + fileCount * 8;
+            for (int i = 0; i < fileCount; i++)
             {
                 FileEntry file = new FileEntry();
                 file.size = this.mReader.ReadUInt32();
                 file.offset = this.mReader.ReadUInt32() + dataOffset;
                 this.mFiles.Add(file);
             }
-            for (int i = 0; i < this.mFileCount; i++)
+            for (int i = 0; i < fileCount; i++)
             {
                 this.mFiles[i].nameOffset = this.mReader.ReadUInt32();
             }
-            for (int i = 0; i < this.mFileCount; i++)
+            for (int i = 0; i < fileCount; i++)
             {
                 string fullPath = this.mReader.ReadNullTerminatedString();
                 this.mFiles[i].fullPath = fullPath;
@@ -221,27 +167,37 @@ namespace BsaBrowser.Archive
 
         private void LoadOblivionPlus()
         {
-            this.mVersion = this.mReader.ReadUInt32();
-            this.mRecordOffset = this.mReader.ReadUInt32();
-            this.mArchiveFlags = this.mReader.ReadUInt32();
-            this.mFolderCount = this.mReader.ReadUInt32();
-            this.mFileCount = this.mReader.ReadUInt32();
-            this.mFolderNameLength = this.mReader.ReadUInt32();
-            this.mFileNameLength = this.mReader.ReadUInt32();
-            this.mFileFlags = this.mReader.ReadUInt32();
+            var version = this.mReader.ReadUInt32();
+            var recordOffset = this.mReader.ReadUInt32();
+            var archiveFlags = this.mReader.ReadUInt32();
+            var folderCount = this.mReader.ReadUInt32();
+            var fileCount = this.mReader.ReadUInt32();
 
-            this.mCompressed = (this.mArchiveFlags & OB_ARCHIVE_COMPRESSFILES) > 0;
-            this.mContainsFileNameBlobs = (this.mArchiveFlags & F3_ARCHIVE_PREFIXFULLFILENAMES) > 0;
+            this.mHeader.version = version;
+            this.mHeader.recordOffset = recordOffset;
+            this.mHeader.archiveFlags = archiveFlags;
+            this.mHeader.folderCount = folderCount;
+            this.mHeader.fileCount = fileCount;
+
+            this.mHeader.folderNameLength = this.mReader.ReadUInt32();
+            this.mHeader.fileNameLength = this.mReader.ReadUInt32();
+            this.mHeader.folderNameLength = this.mReader.ReadUInt32();
+
+            var compressed = (archiveFlags & OB_ARCHIVE_COMPRESSFILES) > 0;
+            this.mHeader.compressed = compressed;
+
+            var containsFileNameBlobs = (archiveFlags & F3_ARCHIVE_PREFIXFULLFILENAMES) > 0;
+            this.mHeader.containsFileNameBlobs  = containsFileNameBlobs;
 
             List<FolderEntry> folderInfos = new List<FolderEntry>();
-            for (int i = 0; i < this.mFolderCount; i++)
+            for (int i = 0; i < folderCount; i++)
             {
                 FolderEntry folder = new FolderEntry();
                 folder.folderHash = this.mReader.ReadUInt64();
                 folder.fileCount = this.mReader.ReadUInt32();
-                if (this.mVersion == SSE_HEADER_VERSION)
+                if (version == SSE_HEADER_VERSION)
                 {
-                    folder.unk1 = this.mReader.ReadUInt32();
+                    folder.flags = this.mReader.ReadUInt32();
                     folder.fileOffset = this.mReader.ReadUInt64();
                 }
                 else
@@ -252,7 +208,7 @@ namespace BsaBrowser.Archive
                 folderInfos.Add(folder);
             }
 
-            for (int i = 0; i < this.mFolderCount; i++)
+            for (int i = 0; i < folderCount; i++)
             {
                 int len = this.mReader.ReadByte();
                 string folderPath = this.mReader.ReadString(len);
@@ -264,19 +220,19 @@ namespace BsaBrowser.Archive
                     file.size = this.mReader.ReadUInt32();
                     file.offset = this.mReader.ReadUInt32();
                     file.folderPath = folderPath;
-                    bool compressed = this.mCompressed;
-                    if (this.mVersion != SSE_HEADER_VERSION && (file.size & (1 << 30)) != 0)
+                    bool fileCompressed = compressed;
+                    if (version != SSE_HEADER_VERSION && (file.size & (1 << 30)) != 0)
                     {
-                        compressed = !compressed;
+                        fileCompressed = !fileCompressed;
                         file.size ^= 1 << 30;
                     }
-                    file.compressed = compressed;
+                    file.compressed = fileCompressed;
 
                     this.mFiles.Add(file);
                 }
             }
 
-            for (int i = 0; i < this.mFileCount; i++)
+            for (int i = 0; i < fileCount; i++)
             {
                 this.mFiles[i].name = this.mReader.ReadNullTerminatedString();
                 this.mFiles[i].fullPath = string.Format("{0}\\{1}", this.mFiles[i].folderPath, this.mFiles[i].name);
@@ -286,14 +242,20 @@ namespace BsaBrowser.Archive
 
         private void LoadBa2()
         {
-            this.mVersion = this.mReader.ReadUInt32();
-            this.mArchiveFlags = this.mReader.ReadUInt32();
-            this.mFileCount = this.mReader.ReadUInt32();
-            ulong nameTableOffset = this.mReader.ReadUInt64();
+            var version = this.mReader.ReadUInt32();
+            var archiveFlags = this.mReader.ReadUInt32();
+            var fileCount = this.mReader.ReadUInt32();
 
-            for (int i = 0; i < this.mFileCount; i++)
+            this.mHeader.version = version;
+            this.mHeader.archiveFlags = archiveFlags;
+            this.mHeader.fileCount = fileCount;
+
+            ulong nameTableOffset = this.mReader.ReadUInt64();
+            this.mHeader.nameTableOffset = nameTableOffset;
+
+            for (int i = 0; i < fileCount; i++)
             {
-                if (this.mArchiveFlags == BA2_COMPRESS_GNRL)
+                if (archiveFlags == BA2_COMPRESS_GNRL)
                 {
                     FileEntry file = new FileEntry();
 
@@ -314,21 +276,22 @@ namespace BsaBrowser.Archive
                     file.size = compressed ? file.realSize : file.size;
                     this.mFiles.Add(file);
                 }
-                else if (this.mArchiveFlags == BA2_COMPRESS_DX10)
+                else if (archiveFlags == BA2_COMPRESS_DX10)
                 {
                     TextureEntry texture = new TextureEntry();
 
                     texture.nameHash = this.mReader.ReadUInt32();
                     texture.extension = this.mReader.ReadString(4);
                     texture.dirHash = this.mReader.ReadUInt32();
-                    texture.unk8 = this.mReader.ReadByte();
+                    texture.index = this.mReader.ReadByte();
                     texture.numChunks = this.mReader.ReadByte();
                     texture.chunkHdrLen = this.mReader.ReadUInt16();
                     texture.height = this.mReader.ReadUInt16();
                     texture.width = this.mReader.ReadUInt16();
                     texture.numMips = this.mReader.ReadByte();
                     texture.format = this.mReader.ReadByte();
-                    texture.unk16 = this.mReader.ReadUInt16();
+                    texture.texFlags = this.mReader.ReadByte();
+                    texture.tileMode = this.mReader.ReadByte();
 
                     for (int j = 0; j < texture.numChunks; j++)
                     {
@@ -344,6 +307,11 @@ namespace BsaBrowser.Archive
 
                     this.mFiles.Add(texture);
                 }
+                else if (archiveFlags == BA2_COMPRESS_GNMF)
+                {
+                    FileEntry file = new FileEntry();
+                    this.mFiles.Add(file);
+                }
                 else
                 {
                     FileEntry file = new FileEntry();
@@ -355,7 +323,7 @@ namespace BsaBrowser.Archive
             this.mReader.BaseStream.Seek((long)nameTableOffset, SeekOrigin.Begin);
 
             // Assign full names to each file
-            for (int i = 0; i < this.mFileCount; i++)
+            for (int i = 0; i < fileCount; i++)
             {
                 short length = this.mReader.ReadInt16();
                 string fullPath = this.mReader.ReadString(length);
@@ -371,26 +339,29 @@ namespace BsaBrowser.Archive
             FileInfo file = new FileInfo(this.mFilePath);
             if (!file.Exists) return false;
 
+            this.mHeader = new ArchiveHeader();
             this.mFiles = new List<FileEntry>();
 
             this.mReader = new BinaryReader(file.OpenRead(), Encoding.Default);
-            this.mMagic = this.mReader.ReadUInt32();
 
-            if (this.mMagic == BA2_HEADER_MAGIC)
+            var magic = this.mReader.ReadUInt32();
+            this.mHeader.magic = magic;
+
+            if (magic == BA2_HEADER_MAGIC)
             {
                 this.LoadBa2();
             }
-            else if (this.mMagic == MW_HEADER_MAGIC)
+            else if (magic == MW_HEADER_MAGIC)
             {
                 this.LoadMorrowind();
             }
-            else if (this.mMagic == OB_HEADER_MAGIC)
+            else if (magic == OB_HEADER_MAGIC)
             {
                 this.LoadOblivionPlus();
             }
             else
             {
-                this.LoadOldBSA();
+                this.LoadBSA();
             }
             System.Diagnostics.Trace.WriteLine(string.Format("File Loaded : {0} files", this.mFiles.Count));
 
@@ -405,7 +376,7 @@ namespace BsaBrowser.Archive
         private uint ExtractBSA(FileEntry entry, Stream stream)
         {
             this.mReader.BaseStream.Position = (long)entry.offset;
-            if (this.mContainsFileNameBlobs)
+            if (this.mHeader.containsFileNameBlobs)
             {
                 this.mReader.BaseStream.Position += this.mReader.ReadByte() + 1;
             }
@@ -419,26 +390,21 @@ namespace BsaBrowser.Archive
             }
             else
             {
-                byte[] uncompressed;
                 if (entry.realSize == 0)
                 {
                     filesize = this.mReader.ReadUInt32();
-                    uncompressed = new byte[filesize];
                 }
                 else
                 {
                     filesize = entry.realSize;
-                    uncompressed = new byte[entry.realSize];
                 }
 
                 byte[] compressed = new byte[entry.size - 4];
                 this.mReader.Read(compressed, 0, (int)(entry.size - 4));
 
-                Inflater inflater = new Inflater();
-                inflater.SetInput(compressed);
-                inflater.Inflate(uncompressed);
-                stream.Write(uncompressed, 0, uncompressed.Length);
+                stream.WriteInflateDecompress(compressed);
             }
+
             return filesize;
         }
 
@@ -446,7 +412,7 @@ namespace BsaBrowser.Archive
         {
             this.mReader.BaseStream.Seek((long)entry.offset, SeekOrigin.Begin);
             ulong filesz = entry.size & 0x3fffffff;
-            if (this.mContainsFileNameBlobs)
+            if (this.mHeader.containsFileNameBlobs)
             {
                 int len = this.mReader.ReadByte();
                 filesz -= (ulong)len + 1;
@@ -467,11 +433,7 @@ namespace BsaBrowser.Archive
             }
             else
             {
-                using (var ms = new MemoryStream(content, false))
-                using (var inputStream = new InflaterInputStream(ms))
-                {
-                    inputStream.CopyTo(stream);
-                }
+                stream.WriteLZ4Decompress(content);
             }
             return filesize;
         }
@@ -502,13 +464,7 @@ namespace BsaBrowser.Archive
             else
             {
                 filesize = entry.realSize;
-                byte[] uncompressed = new byte[entry.realSize];
-
-                Inflater inflater = new Inflater();
-                inflater.SetInput(bytes);
-                inflater.Inflate(uncompressed);
-
-                stream.Write(uncompressed, 0, uncompressed.Length);
+                stream.WriteInflateDecompress(bytes);
             }
             return filesize;
         }
@@ -571,49 +527,46 @@ namespace BsaBrowser.Archive
                     return;
             }
 
-            var temp = new MemoryStream();
-
-            using (var bw = new BinaryWriter(temp))
+            using (var temp = new MemoryStream())
             {
-                bw.Write((uint)DDS.DDS_MAGIC);
-                ddsHeader.Write(bw);
-
-                for (int i = 0; i < entry.numChunks; i++)
+                using (var bw = new BinaryWriter(temp))
                 {
-                    byte[] compressed = new byte[entry.Chunks[i].packSize];
-                    byte[] full = new byte[entry.Chunks[i].fullSize];
-                    bool isCompressed = entry.Chunks[i].packSize != 0;
+                    bw.Write((uint)DDS.DDS_MAGIC);
+                    ddsHeader.Write(bw);
 
-                    this.mReader.BaseStream.Seek((long)entry.Chunks[i].offset, SeekOrigin.Begin);
-
-                    if (!entry.compressed)
+                    for (int i = 0; i < entry.numChunks; i++)
                     {
-                        this.mReader.Read(full, 0, full.Length);
-                    }
-                    else
-                    {
-                        this.mReader.Read(compressed, 0, compressed.Length);
-                        // Uncompress
-                        Inflater inflater = new Inflater();
-                        inflater.SetInput(compressed);
-                        inflater.Inflate(full);
+                        byte[] compressed = new byte[entry.Chunks[i].packSize];
+                        byte[] full = new byte[entry.Chunks[i].fullSize];
+                        bool isCompressed = entry.Chunks[i].packSize != 0;
+
+                        this.mReader.BaseStream.Seek((long)entry.Chunks[i].offset, SeekOrigin.Begin);
+
+                        if (!entry.compressed)
+                        {
+                            this.mReader.Read(full, 0, full.Length);
+                            bw.Write(full);
+                        }
+                        else
+                        {
+                            this.mReader.Read(compressed, 0, compressed.Length);
+                            // Uncompress
+                            bw.WriteInflateDecompress(compressed);
+                        }
                     }
 
-                    bw.Write(full);
+                    byte[] bytes = temp.GetBuffer();
+                    stream.Write(bytes, 0, bytes.Length);
                 }
-
-                byte[] bytes = temp.GetBuffer();
-                stream.Write(bytes, 0, bytes.Length);
-            }
+            }            
         }
 
         public void ExtractTo(FileEntry entry, Stream stream)
         {
-            if (this.mMagic == BA2_HEADER_MAGIC)
+            if (this.mHeader.magic == BA2_HEADER_MAGIC)
             {
-                if (entry is TextureEntry)
+                if (entry is TextureEntry textureEntry)
                 {
-                    TextureEntry textureEntry = (TextureEntry)entry;
                     this.ExtractBA2Texture(textureEntry, stream);
                 }
                 else
@@ -621,7 +574,7 @@ namespace BsaBrowser.Archive
                     this.ExtractBA2(entry, stream);
                 }
             }
-            else if (this.mVersion == SSE_HEADER_VERSION)
+            else if (this.mHeader.version == SSE_HEADER_VERSION)
             {
                 this.ExtractSSEBSA(entry, stream);
             }
@@ -643,7 +596,7 @@ namespace BsaBrowser.Archive
             os.Seek(0L, SeekOrigin.Begin);
             using (FileStream stream = File.OpenWrite(destPath))
             {
-                CopyStream(os, stream);
+                os.CopyTo(stream);
                 stream.Close();
             }
         }
@@ -690,10 +643,12 @@ namespace BsaBrowser.Archive
         #region Properties
         public string FilePath
         {
-            get
-            {
-                return this.mFilePath;
-            }
+            get => this.mFilePath;
+        }
+
+        public ArchiveHeader Header
+        {
+            get => this.mHeader;
         }
 
         public FileEntry this[int index]
@@ -710,20 +665,35 @@ namespace BsaBrowser.Archive
 
         public ArchiveNode Node
         {
-            get
-            {
-                return this.mNode;
-            }
+            get => this.mNode;
         }
         #endregion
 
         #region Nested Types
-        private class FolderEntry
+        public class ArchiveHeader
+        {
+            #region Variables
+            public uint magic = 0;
+            public uint version = 0;
+            public uint recordOffset = 0;
+            public uint archiveFlags = 0;
+            public uint folderCount = 0;
+            public uint fileCount = 0;
+            public uint folderNameLength = 0;
+            public uint fileNameLength = 0;
+            public uint fileFlags = 0;
+            public ulong nameTableOffset = 0;
+            public bool compressed = false;
+            public bool containsFileNameBlobs = false;
+            #endregion
+        }
+
+        public class FolderEntry
         {
             #region Variables
             public ulong folderHash = 0;
             public uint fileCount = 0;
-            public uint unk1 = 0;
+            public uint flags = 0;
             public ulong fileOffset = 0;
             #endregion
         }
@@ -765,14 +735,15 @@ namespace BsaBrowser.Archive
         public class TextureEntry : FileEntry
         {
             #region Variables
-            public byte unk8 = 0;
+            public byte index = 0;
             public byte numChunks = 0;
             public ushort chunkHdrLen = 0;
             public ushort height = 0;
             public ushort width = 0;
             public byte numMips = 0;
             public byte format = 0;
-            public ushort unk16 = 0;
+            public byte texFlags = 0;
+            public byte tileMode = 0;
 
             public List<TextureChunk> Chunks = new List<TextureChunk>();
             #endregion
@@ -796,7 +767,6 @@ namespace BsaBrowser.Archive
 
             public static uint MAKEFOURCC(char ch0, char ch1, char ch2, char ch3)
             {
-                // This is alien to me...
                 return ((uint)(byte)(ch0) | ((uint)(byte)(ch1) << 8) | ((uint)(byte)(ch2) << 16 | ((uint)(byte)(ch3) << 24)));
             }
 
@@ -908,212 +878,6 @@ namespace BsaBrowser.Archive
                 // 8 uints, each 4 bytes each
                 return 8 * 4;
             }
-        }
-        #endregion
-    }
-
-    public partial class ArchiveNode : IEnumerable, IEnumerable<ArchiveNode>
-    {
-        #region Variables
-        private string mName = string.Empty;
-        private string mPath = string.Empty;
-        private ArchiveFile.FileEntry mFileEntry = null;
-        private Dictionary<string, ArchiveNode> mChilds = null;
-        #endregion
-
-        #region Constructor
-        public ArchiveNode()
-        {
-            this.mChilds = new Dictionary<string, ArchiveNode>();
-        }
-
-        public ArchiveNode(string path, string name)
-            : this()
-        {
-            this.mPath = path;
-            this.mName = name;
-        }
-
-        public ArchiveNode(string path, string name, List<ArchiveFile.FileEntry> files)
-            : this(path, name)
-        {
-            for (int i = 0; i < files.Count; i++)
-            {
-                this.AddFile(files[i]);
-            }
-        }
-        #endregion
-
-        #region Methods
-        private void AddFile(ArchiveFile.FileEntry file)
-        {
-            string fullPath = file.fullPath;
-            if (!string.IsNullOrEmpty(fullPath))
-            {
-                string[] pArr = fullPath.Split('\\');
-                string path = string.Empty;
-                ArchiveNode node = this;
-                for (int i = 0; i < pArr.Length; i++)
-                {
-                    string p = pArr[i];
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        path += "\\";
-                    }
-                    path += p;
-
-                    ArchiveNode current;
-                    if (node.mChilds.ContainsKey(p))
-                    {
-                        current = node.mChilds[p];
-                    }
-                    else
-                    {
-                        current = new ArchiveNode(path, p);
-                        if (i == pArr.Length - 1)
-                        {
-                            current.mFileEntry = file;
-                        }
-                        node.mChilds.Add(p, current);
-                    }
-                    node = current;
-                }
-            }
-        }
-
-        public void Sort()
-        {
-            ArchiveNode[] nodes = new ArchiveNode[this.mChilds.Count];
-            this.mChilds.Values.CopyTo(nodes, 0);
-            Array.Sort(nodes, (ArchiveNode node1, ArchiveNode node2) =>
-            {
-                if (node1.IsFolder && !node2.IsFolder)
-                {
-                    return -1;
-                }
-                else if (!node1.IsFolder && node2.IsFolder)
-                {
-                    return 1;
-                }
-                return node1.Name.CompareTo(node2.Name);
-            });
-
-            this.mChilds = new Dictionary<string, ArchiveNode>();
-            foreach(ArchiveNode node in nodes)
-            {
-                node.Sort();
-                this.mChilds.Add(node.Name, node);
-            }
-        }
-
-        public override string ToString()
-        {
-            return this.mPath;
-        }
-
-        public IEnumerator<ArchiveNode> GetEnumerator()
-        {
-            foreach (var node in mChilds.Values.ToArray())
-            {
-                yield return node;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            foreach (var node in mChilds.Values.ToArray())
-            {
-                yield return node;
-            }
-        }
-        #endregion
-
-        #region Properties
-        public string Name
-        {
-            get => mName;
-        }
-
-        public string Path
-        {
-            get => mPath;
-        }
-
-        public string DirPath
-        {
-            get
-            {
-                return ArchiveFile.GetDirectoryName(mPath);
-            }
-        }
-
-        public bool IsFolder
-        {
-            get => mFileEntry == null;
-        }
-
-        public long Size
-        {
-            get
-            {
-                if (mFileEntry != null)
-                {
-                    if (mFileEntry.realSize > 0) 
-                        return mFileEntry.realSize;
-                    return mFileEntry.size;
-                }
-                return mChilds.Count;
-            }
-        }
-
-        public long CompressedSize
-        {
-            get
-            {
-                if (mFileEntry != null)
-                    return mFileEntry.compressSize;
-
-                return 0;
-            }
-        }
-
-        public long Offset
-        {
-            get
-            {
-                if (mFileEntry != null)
-                    return (long)mFileEntry.offset;
-
-                return 0;
-            }
-        }
-
-        public ArchiveFile.FileEntry Entry
-        {
-            get => mFileEntry;
-        }
-
-        public ArchiveNode this[int index]
-        {
-            get
-            {
-                var values = mChilds.Values.ToArray();
-                if (index > -1 && index < values.Length)
-                {
-                    return values[index];
-                }
-                return null;
-            }
-        }
-
-        public IEnumerable<ArchiveNode> Folders
-        {
-            get => mChilds.Values.Where(x => x.IsFolder).AsEnumerable();
-        }
-
-        public IEnumerable<ArchiveNode> Files
-        {
-            get => mChilds.Values.Where(x => !x.IsFolder).AsEnumerable();
         }
         #endregion
     }

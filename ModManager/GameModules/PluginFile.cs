@@ -84,23 +84,17 @@ namespace ModManager.GameModules
                             while (stream.Position < stream.Length)
                             {
                                 signature = Signature.ReadFrom(stream);
-                                if (signature.IsValid)
+                                if (!signature.IsValid) break;
+
+                                if (signature.IsSubRecord)
                                 {
-                                    if (signature.IsSubRecord)
-                                    {
-                                        var record = new SubRecord(this.GameId, signature, stream, 0, this.Header.Compressed);
-                                        this.Records.Add(record);
-                                    }
-                                    else
-                                    {
-                                        var record = new Record(this.GameId, signature, stream, this.Header.Compressed, parseSubRecords);
-                                        this.Records.Add(record);
-                                    }
+                                    var record = new SubRecord(this.GameId, signature, stream, 0, this.Header.Compressed);
+                                    this.Records.Add(record);
                                 }
                                 else
                                 {
-                                    System.Diagnostics.Debug.WriteLine("Something wrong!");
-                                    break;
+                                    var record = new Record(this.GameId, signature, stream, this.Header.Compressed, parseSubRecords);
+                                    this.Records.Add(record);
                                 }
                             }
                         }

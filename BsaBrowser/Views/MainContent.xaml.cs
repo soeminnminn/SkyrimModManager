@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace BsaBrowser.Views
 {
@@ -86,6 +77,40 @@ namespace BsaBrowser.Views
                     }
                 }
                 Model.SelectedNodes = nodes;
+            }
+        }
+
+        private void ListView_KeyDown(object sender, KeyEventArgs e)
+        {
+            int charCodeDiff = (int)'a' - (int)Key.A;
+            int numCodeDiff = (int)'1' - (int)Key.D0;
+            int numpadCodeDiff = (int)'1' - (int)Key.NumPad0;
+            char keyChar = '\0';
+
+            if (e.Key >= Key.A && e.Key <= Key.Z)
+            {
+                keyChar = (char)(charCodeDiff + (int)e.Key);
+            }
+            else if (e.Key >= Key.D0 && e.Key <= Key.D9)
+            {
+                keyChar = (char)(numCodeDiff + (int)e.Key);
+            }
+            else if (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9)
+            {
+                keyChar = (char)(numpadCodeDiff + (int)e.Key);
+            }
+
+            if (keyChar != '\0' && Model != null)
+            {
+                var node = Model.Nodes.Where(n => n.Name.StartsWith(keyChar)).FirstOrDefault();
+                if (node != null && sender is ListView listView)
+                {
+                    listView.ScrollIntoView(node);
+                    if (listView.SelectedItems.Count == 0)
+                    {
+                        listView.SelectedItem = node;
+                    }
+                }
             }
         }
     }

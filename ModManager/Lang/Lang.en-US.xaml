@@ -4,16 +4,25 @@
 	
 	<!--
 		@summary:	English (US) language file
-		@author:	Zack Loveless
+		@author:	Soe Minn Minn
 	-->
 	
 	<!-- App and Window Strings -->
     <System:String x:Key="AppNameString">Bethesda Mods Manager</System:String>
     <System:String x:Key="MainWindowTitleString">Bethesda Mods Manager</System:String>
     <System:String x:Key="BackupWindowTitleString">Backup &amp; Restore</System:String>
-	<System:String x:Key="AboutWindowTitleString">About - {0}</System:String>
-	
-	<!-- Menu Strings -->
+	<System:String x:Key="AboutWindowTitleString">About</System:String>
+
+    <!-- Main Window Strings -->
+    <System:String x:Key="ModInfoTitleString">Mod Informations</System:String>
+    <System:String x:Key="ModInfoNameString">Name</System:String>
+    <System:String x:Key="ModInfoAuthorString">Author</System:String>
+    <System:String x:Key="ModInfoDescriptionString">Description</System:String>
+    <System:String x:Key="ModInfoRecordFlagsString">Record flags</System:String>
+    <System:String x:Key="ModInfoMasterFilesString">Master files</System:String>
+    <System:String x:Key="ModInfoModifiedDateString">Modified Date</System:String>
+
+    <!-- Menu Strings -->
 	<System:String x:Key="FileMenuItemString">_File</System:String>
 	<System:String x:Key="SaveMenuItemString">_Save</System:String>
 	<System:String x:Key="ExitMenuItemString">E_xit</System:String>
@@ -24,6 +33,7 @@
     <System:String x:Key="RestoreLastMenuItemString">Restore _last</System:String>
     <System:String x:Key="DeleteMenuItemString">_Delete</System:String>
     <System:String x:Key="HelpMenuItemString">_Help</System:String>
+    <System:String x:Key="ToolsMenuItemString">_Tools</System:String>
     <System:String x:Key="AboutMenuItemString">_About</System:String>
 
     <!-- Messages -->

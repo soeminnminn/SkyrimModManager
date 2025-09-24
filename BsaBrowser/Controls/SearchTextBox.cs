@@ -278,7 +278,7 @@ namespace BsaBrowser.Controls
         static SearchTextBox()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(SearchTextBox), new FrameworkPropertyMetadata(typeof(SearchTextBox)));
-            TextProperty.OverrideMetadata(typeof(SearchTextBox), new FrameworkPropertyMetadata(String.Empty, new PropertyChangedCallback(OnTextPropertyChanged)));
+            TextProperty.OverrideMetadata(typeof(SearchTextBox), new FrameworkPropertyMetadata(string.Empty, new PropertyChangedCallback(OnTextPropertyChanged)));
         }
 
         /// <summary>

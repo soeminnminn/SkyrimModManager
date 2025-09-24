@@ -7,8 +7,11 @@ namespace ModManager.GameModules
 {
     public class OBinaryReader : IDisposable
     {
+        #region Variables
         private readonly BinaryReader m_reader;
+        #endregion
 
+        #region Constructors
         public OBinaryReader(Stream input)
           : this(input, new UTF8Encoding(), true)
         {
@@ -33,7 +36,9 @@ namespace ModManager.GameModules
           : this(new MemoryStream(bytes), encoding, false)
         {
         }
+        #endregion
 
+        #region Properties
         public virtual Stream BaseStream
         {
             get
@@ -71,7 +76,9 @@ namespace ModManager.GameModules
         {
             get => this.m_reader.BaseStream.CanSeek;
         }
+        #endregion
 
+        #region Methods
         public virtual void Close()
         {
             this.m_reader.Close();
@@ -218,5 +225,6 @@ namespace ModManager.GameModules
         {
             this.m_reader.BaseStream.CopyTo(destination);
         }
+        #endregion
     }
 }

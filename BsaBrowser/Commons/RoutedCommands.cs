@@ -8,10 +8,13 @@ namespace BsaBrowser
 {
     public static class RoutedCommands
     {
+        #region Variables
         public static RoutedCommand Refresh = new RoutedCommand("Refresh", typeof(Window));
         public static RoutedCommand Delete = new RoutedCommand("Delete", typeof(Window));
         public static RoutedCommand Exit = new RoutedCommand("Exit", typeof(Window));
+        #endregion
 
+        #region Methods
         public static void RaiseClickEvent(this Control sender, ExecutedRoutedEventArgs e)
         {
             if (sender is MenuItem)
@@ -23,5 +26,6 @@ namespace BsaBrowser
                 (sender as ButtonBase)?.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             }
         }
+        #endregion
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -8,6 +7,7 @@ namespace ModManager.GameModules
 {
     public class Record : IRecord
     {
+        #region Properties
         public GameID GameId { get; }
 
         public Signature RecordType { get; set; } = Signature.DEFAULT;
@@ -23,21 +23,23 @@ namespace ModManager.GameModules
         public ushort Version { get; internal set; } = 0;
 
         public uint GroupType { get; internal set; } = 0;
-        
+
         public ushort Stamp { get; internal set; } = 0;
 
         private bool m_isCompressed = false;
         public bool Compressed
         {
-            get {
+            get
+            {
                 if (this.RecordType.IsGroup)
                     return this.m_isCompressed;
-                else 
+                else
                     return this.GameId != GameID.Morrowind && (this.Flags & 0x00040000) != 0;
             }
-            set {
-                this.m_isCompressed = value; 
-             }
+            set
+            {
+                this.m_isCompressed = value;
+            }
         }
 
         public bool IsMaster
@@ -47,7 +49,8 @@ namespace ModManager.GameModules
 
         public bool Deleted
         {
-            get {
+            get
+            {
                 if (this.RecordType.IsGroup)
                     return this.GroupType == 6; // May be, I don't known.
 
@@ -86,7 +89,9 @@ namespace ModManager.GameModules
         }
 
         public List<IRecord> Records { get; private set; } = new List<IRecord>();
+        #endregion
 
+        #region Constructors
         public Record(GameID gameId, Signature signature)
         {
             this.GameId = gameId;
@@ -99,7 +104,9 @@ namespace ModManager.GameModules
             this.Compressed = compressed;
             this.Parse(stream, parseSubRecords);
         }
+        #endregion
 
+        #region Methods
         internal void Parse(Stream stream, bool parseSubRecords)
         {
             var reader = new OBinaryReader(stream);
@@ -124,7 +131,7 @@ namespace ModManager.GameModules
                     this.Data = reader.ReadBytes((int)this.DataSize);
                     if (parseSubRecords && !this.Deleted)
                         this.ParseSubRecords();
-                }                
+                }
             }
         }
 
@@ -133,7 +140,7 @@ namespace ModManager.GameModules
             this.DataSize = reader.ReadUInt32();
             if (this.GameId == GameID.Morrowind) reader.Skip(4);
             this.Flags = reader.ReadUInt32();
-            if (this.GameId != GameID.Morrowind) this.FormId = reader.ReadUInt32(); 
+            if (this.GameId != GameID.Morrowind) this.FormId = reader.ReadUInt32();
             if (this.GameId != GameID.Morrowind) this.Revision = reader.ReadUInt32(); // Version Control Info 1
             if (this.GameId != GameID.Morrowind && this.GameId != GameID.Oblivion)
             {
@@ -161,42 +168,36 @@ namespace ModManager.GameModules
                 while (stream.Position < stream.Length)
                 {
                     var signature = Signature.ReadFrom(stream);
-                    if (signature.IsValid)
+                    if (!signature.IsValid) break;
+
+                    if (signature.IsGroup || this.RecordType.IsGroup)
                     {
-                        if (signature.IsGroup || this.RecordType.IsGroup)
-                        {
-                            var record = new Record(this.GameId, signature, stream, this.Compressed, true);
-                            this.Records.Add(record);
-                        }
-                        else
-                        {
-                            var subRecord = new SubRecord(this.GameId, signature, stream, (int)sizeOverride, this.Compressed);
-                            if (signature.IsXXXX)
-                            {
-                                if (subRecord.Data.Length >= 4)
-                                {
-                                    sizeOverride = BitConverter.ToUInt32(subRecord.Data.Take(4).ToArray());
-                                }
-                            }
-                            else
-                            {
-                                sizeOverride = 0;
-                                this.Records.Add(subRecord);
-                            }
-                        }
+                        var record = new Record(this.GameId, signature, stream, this.Compressed, true);
+                        this.Records.Add(record);
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("Something wrong!");
-                        break;
-                    }                    
+                        var subRecord = new SubRecord(this.GameId, signature, stream, (int)sizeOverride, this.Compressed);
+                        if (signature.IsXXXX)
+                        {
+                            if (subRecord.Data.Length >= 4)
+                            {
+                                sizeOverride = BitConverter.ToUInt32(subRecord.Data.Take(4).ToArray());
+                            }
+                        }
+                        else
+                        {
+                            sizeOverride = 0;
+                            this.Records.Add(subRecord);
+                        }
+                    }
                 }
             }
         }
 
         public override string ToString()
         {
-            return string.Format("{0}:{{ Size: {1}, DSize: {2}, GType: {3}, Compressed: {4} }}", 
+            return string.Format("{0}:{{ Size: {1}, DSize: {2}, GType: {3}, Compressed: {4} }}",
                 this.RecordType, this.DataSize, this.Data.Length, this.GroupType, this.Compressed);
         }
 
@@ -226,5 +227,6 @@ namespace ModManager.GameModules
                 }
             }
         }
+        #endregion
     }
 }

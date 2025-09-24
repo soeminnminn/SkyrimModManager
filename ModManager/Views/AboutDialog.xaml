@@ -9,7 +9,7 @@
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         WindowStyle="SingleBorderWindow"
-        Title="About"
+        Title="{DynamicResource AboutWindowTitleString}"
         Icon="/Images/skyrimlogo.png"
         Height="280" Width="400">
     <Window.Resources>

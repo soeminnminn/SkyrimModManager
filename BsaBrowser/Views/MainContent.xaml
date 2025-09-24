@@ -33,7 +33,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <Image Grid.Column="0" Source="{Binding Converter={StaticResource FileIconConverter}}" Margin="0 0 4 0"/>
+                            <Image Grid.Column="0" Width="16" Source="{Binding Converter={StaticResource FileIconConverter}}" Margin="0 0 4 0"/>
                             <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" />
                         </Grid>
                     </DataTemplate>
@@ -44,7 +44,9 @@
 
             <ListView x:Name="listView" Grid.Column="2" ItemsSource="{Binding Nodes}" Style="{StaticResource ListViewStyle}"
                       AllowDrop="True" DragEnter="List_DragEnter" Drop="List_Drop"
-                      SelectionChanged="ListView_SelectionChanged" MouseDoubleClick="ListView_MouseDoubleClick">
+                      SelectionChanged="ListView_SelectionChanged" MouseDoubleClick="ListView_MouseDoubleClick"
+                      KeyDown="ListView_KeyDown"
+                      d:ItemsSource="{d:SampleData ItemCount=5}">
                 <ListView.View>
                     <GridView>
                         <GridView.Columns>

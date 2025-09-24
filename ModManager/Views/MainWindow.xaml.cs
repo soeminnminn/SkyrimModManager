@@ -1,35 +1,57 @@
 ﻿using System;
-using System.Windows;
 using System.ComponentModel;
-using System.Windows.Input;
 using System.Threading;
+using System.Windows;
 using System.Windows.Controls;
-using ModManager.ViewModels;
+using System.Windows.Input;
 using ModManager.Models;
+using ModManager.Plugin;
+using ModManager.ViewModels;
 
 namespace ModManager.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IPluginParameter
     {
+        #region Variables
         private MainViewModel viewModel;
         private BackgroundWorker workerLoad;
         private BackgroundWorker workerRestore;
+        #endregion
 
+        #region Constructors
         public MainWindow()
         {
             InitializeComponent();
             Initialize();
         }
-            
+        #endregion
+
+        #region Methods
         private void Initialize()
         {
-            var config = Config.Load();
+            var app = Application.Current as App;
 
-            this.viewModel = new MainViewModel(config);
-            this.DataContext = viewModel;
+            this.viewModel = new MainViewModel(app.config);
+            this.DataContext = this.viewModel;
+
+            var pluginCommands = Plugin.Manager.Instance.Plugins;
+            if (pluginCommands.Count > 0)
+            {
+                foreach (var pluginCommand in pluginCommands)
+                {
+                    var menuItem = new MenuItem();
+                    menuItem.Header = pluginCommand.Title;
+                    menuItem.Command = pluginCommand;
+                    menuItem.CommandParameter = this;
+
+                    this.menuTools.Items.Add(menuItem);
+                }
+
+                this.menuTools.Visibility = Visibility.Visible;
+            }
 
             this.workerLoad = new BackgroundWorker()
             {
@@ -227,5 +249,11 @@ namespace ModManager.Views
                 layoutInfo.Visibility = Visibility.Hidden;
             }
         }
+    
+        public object ParsePluginArguments(PluginCommand command, string[] args)
+        {
+            return string.Empty;
+        }
+        #endregion
     }
 }

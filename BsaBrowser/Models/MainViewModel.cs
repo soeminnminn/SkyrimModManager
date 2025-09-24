@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.IO;
-using System.Threading;
-using System.Collections.Specialized;
+using System.Windows.Controls;
 using System.Windows.Input;
-using System.Collections.ObjectModel;
 using Microsoft.Win32;
 using BsaBrowser.Archive;
 using BsaBrowser.Commons;
+using BsaBrowser.RecentFiles;
 using BsaBrowser.Wildcard;
 
 namespace BsaBrowser.Models
@@ -38,9 +40,11 @@ namespace BsaBrowser.Models
         private ArchiveNode mTreeSelected = null;
         private IList<ArchiveNode> mSelectedNodes = null;
         private ObservableCollection<ArchiveNode> mFoundNodes = new();
-        
-        private List<string> mTempList = new();
 
+        private string mCopyTempPath = string.Empty;
+        private IDataObject mCopyObject = null;
+
+        private IRecentFilesMenu recentFilesMenu;
         private string mContent = MainContent;
         #endregion
 
@@ -145,6 +149,20 @@ namespace BsaBrowser.Models
         #endregion
 
         #region Methods
+        public void InitializeRecentFiles(MenuItem miRecentFiles)
+        {
+            var store = new RecentFilesPersistence(Config.AppDataConfigDir);
+            recentFilesMenu = new RecentFilesMenu(store);
+            recentFilesMenu.RecentFileSelected += RecentFile_Selected;
+            recentFilesMenu.Initialize(miRecentFiles);
+        }
+
+        private void RecentFile_Selected(object sender, RecentFileSelectedEventArgs e)
+        {
+            CloseFile();
+            OpenFile(e.FileName);
+        }
+
         public async void OpenFile(string filePath = null)
         {
             if (IsProcessing) return;
@@ -180,6 +198,7 @@ namespace BsaBrowser.Models
 
             if (node != null)
             {
+                recentFilesMenu.AddRecentFile(fileName);
                 mFileName = fileName;
                 Node = node;
                 Node.IsExpanded = true;
@@ -332,7 +351,7 @@ namespace BsaBrowser.Models
                                 mArchiveFile.ExtractTo(fn.Entry, destFilePath);
                             }
 
-                            string destDirPath = Path.Combine(tempPath, n.DirPath);
+                            string destDirPath = Path.Combine(tempPath, n.Name);
                             files.Add(destDirPath);
                         }
                         else
@@ -345,11 +364,16 @@ namespace BsaBrowser.Models
                     return files;
                 });
 
-                StringCollection collection = new();
-                collection.AddRange(result.ToArray());
-                Clipboard.SetFileDropList(collection);
+                Clipboard.Clear();
+                if (!string.IsNullOrEmpty(mCopyTempPath))
+                {
+                    DeleteFolder(mCopyTempPath);
+                }
 
-                mTempList.Add(tempPath);
+                mCopyObject = new DataObject(DataFormats.FileDrop, result.ToArray());
+                Clipboard.SetDataObject(mCopyObject);
+
+                mCopyTempPath = tempPath;
             }
             catch (Exception e)
             {
@@ -410,24 +434,27 @@ namespace BsaBrowser.Models
             }
         }
 
+        private void DeleteFolder(string path)
+        {
+            try
+            {
+                if (Directory.Exists(path))
+                {
+                    Directory.Delete(path, true);
+                }
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+            }
+        }
+
         public void Dispose()
         {
-            if (mTempList.Count > 0)
+            if (!string.IsNullOrEmpty(mCopyTempPath))
             {
-                foreach(var temp in mTempList)
-                {
-                    try
-                    {
-                        if (Directory.Exists(temp))
-                        {
-                            Directory.Delete(temp);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine(e.Message);
-                    }
-                }
+                Clipboard.Clear();
+                DeleteFolder(mCopyTempPath);
             }
 
             mTreeSelected = null;

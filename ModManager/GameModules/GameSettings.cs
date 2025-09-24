@@ -7,6 +7,7 @@ namespace ModManager.GameModules
 {
     public class GameSettings
     {
+        #region Variables
         public static readonly string[] SKYRIM_HARDCODED_PLUGINS = {
             "Skyrim.esm", "Update.esm"
         };
@@ -49,7 +50,9 @@ namespace ModManager.GameModules
 
         private string[] m_implicitlyActivePlugins = new string[] { };
         private string[] m_loadOrderPlugins = new string[] { };
+        #endregion
 
+        #region Constructors
         public GameSettings(GameID gameId, string gamePath)
         {
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -61,7 +64,9 @@ namespace ModManager.GameModules
             this.m_implicitlyActivePlugins = this.ReadImplicitlyActivePlugins();
             this.m_loadOrderPlugins = this.ReadLoadOrderPlugins();
         }
+        #endregion
 
+        #region Properties
         public GameID Id { get; private set; }
 
         public string GamePath { get; private set; }
@@ -147,32 +152,6 @@ namespace ModManager.GameModules
             }
         }
 
-        private string[] ReadLoadOrderPlugins()
-        {
-            var pluginNames = new List<string>();
-            var fileName = this.LoadOrderPath;
-
-            if (!string.IsNullOrEmpty(fileName))
-            {
-                if (File.Exists(fileName))
-                {
-                    using (var reader = File.OpenText(fileName))
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            var line = reader.ReadLine();
-                            if (!string.IsNullOrEmpty(line))
-                            {
-                                pluginNames.Add(line);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return pluginNames.ToArray();
-        }
-
         public string[] LoadOrderPlugins
         {
             get => this.m_loadOrderPlugins;
@@ -233,6 +212,44 @@ namespace ModManager.GameModules
             }
         }
 
+        public string[] ImplicitlyActivePlugins
+        {
+            get => this.m_implicitlyActivePlugins;
+        }
+
+        public string PluginsDirectory
+        {
+            get => Path.Combine(GamePath, PluginFolderName);
+        }
+        #endregion
+
+        #region Methods
+        private string[] ReadLoadOrderPlugins()
+        {
+            var pluginNames = new List<string>();
+            var fileName = this.LoadOrderPath;
+
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                if (File.Exists(fileName))
+                {
+                    using (var reader = File.OpenText(fileName))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            var line = reader.ReadLine();
+                            if (!string.IsNullOrEmpty(line))
+                            {
+                                pluginNames.Add(line);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return pluginNames.ToArray();
+        }
+
         private string[] ReadImplicitlyActivePlugins()
         {
             var pluginNames = new List<string>();
@@ -255,16 +272,6 @@ namespace ModManager.GameModules
                 }
             }
             return pluginNames.ToArray();
-        }
-
-        public string[] ImplicitlyActivePlugins
-        {
-            get => this.m_implicitlyActivePlugins;
-        }
-
-        public string PluginsDirectory
-        {
-            get => Path.Combine(GamePath, PluginFolderName);
         }
 
         public static string Ghost(string plugin)
@@ -303,5 +310,6 @@ namespace ModManager.GameModules
             name = name.Substring(name.Length - 4);
             return VALID_EXTENSIONS.Contains(name, StringComparer.InvariantCultureIgnoreCase);
         }
+        #endregion
     }
 }

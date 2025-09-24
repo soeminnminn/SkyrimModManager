@@ -1,0 +1,19 @@
+{
+  "name": "Skyrim Special Edition",
+  "plugin": "Plugins.txt",
+  "gamePath": {
+    "path": "",
+    "registry": {
+      "path": "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Bethesda Softworks\\Skyrim Special Edition",
+      "key": "Installed Path"
+    }
+  },
+  "hideCC": true,
+  "tools": [
+    {
+      "name": "BsaBrowser.exe",
+      "title": "BSA Browser",
+      "executable": true
+    }
+  ]
+}

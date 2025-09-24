@@ -8,9 +8,12 @@ namespace ModManager.ViewModels
 {
     internal class BackupFilesModel
     {
+        #region Variables
         public ObservableCollection<FileModel> Data { get; private set; }
         private Config config;
+        #endregion
 
+        #region Constructors
         public BackupFilesModel()
         {
             this.Data = new ObservableCollection<FileModel>();
@@ -21,7 +24,9 @@ namespace ModManager.ViewModels
         {
             this.config = config;
         }
+        #endregion
 
+        #region Methods
         public bool Load()
         {
             var configDir = Config.AppDataConfigDir;
@@ -42,7 +47,8 @@ namespace ModManager.ViewModels
                         list.Add(new FileModel(file));
                     }
 
-                    list.Sort(delegate (FileModel a, FileModel b) {
+                    list.Sort(delegate (FileModel a, FileModel b)
+                    {
                         return b.Name.CompareTo(a.Name);
                     });
                     this.Data = new ObservableCollection<FileModel>(list);
@@ -103,14 +109,15 @@ namespace ModManager.ViewModels
                 try
                 {
                     return File.ReadAllText(model.Path);
-                } 
-                catch(Exception e)
+                }
+                catch (Exception e)
                 {
                     System.Diagnostics.Debug.WriteLine(e.Message);
                 }
-                
+
             }
             return string.Empty;
         }
+        #endregion
     }
 }

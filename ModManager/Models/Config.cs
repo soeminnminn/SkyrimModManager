@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text.Json;
@@ -141,9 +140,11 @@ namespace ModManager.Models
         {
             var defConfig = DefaultConfig;
             
-            var dirList = new List<string>();
-            dirList.Add(AppDir);
-            dirList.Add(AppDataConfigDir);
+            var dirList = new List<string>()
+            { 
+                AppDir,
+                AppDataConfigDir
+            };
 
             foreach (string dir in dirList)
             {
@@ -256,6 +257,9 @@ namespace ModManager.Models
 
         [JsonPropertyName("hideCC")]
         public bool HideCreationClub { get; set; }
+
+        [JsonPropertyName("tools")]
+        public PluginTool[] PluginTools { get; set; }
         #endregion
 
         #region Methods
@@ -289,7 +293,7 @@ namespace ModManager.Models
                 {
                     this.Settings = new GameSettings(this.GameId, this.GamePath);
                 }
-            } 
+            }
         }
 
         public FileInfo GetPluginFile()
@@ -345,6 +349,36 @@ namespace ModManager.Models
 
             [JsonPropertyName("key")]
             public string KeyName { get; set; }
+        }
+
+        public class PluginTool
+        {
+            [JsonPropertyName("name")]
+            public string Name{ get; set; }
+
+            [JsonPropertyName("title")]
+            public string Title { get; set; }
+
+            [JsonPropertyName("entryType")]
+            public string EntryType { get; set; }
+
+            [JsonPropertyName("executable")]
+            public bool IsExecutable { get; set; }
+
+            [JsonPropertyName("entryMethod")]
+            public PluginMethod EntryMethod { get; set; }
+
+            [JsonPropertyName("arguments")]
+            public string[] Arguments { get; set; }
+        }
+
+        public class PluginMethod
+        {
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+
+            [JsonPropertyName("static")]
+            public bool IsStatic { get; set; }
         }
         #endregion
     }

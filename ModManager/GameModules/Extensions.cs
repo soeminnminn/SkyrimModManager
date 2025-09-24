@@ -1,12 +1,12 @@
 using System;
 using System.IO;
-using System.Text;
 using System.IO.Compression;
 
 namespace ModManager.GameModules
 {
     public static class Extensions
     {
+        #region Methods
         public static void CopyStream(this Stream src, Stream dst)
         {
             int num;
@@ -62,5 +62,6 @@ namespace ModManager.GameModules
             }
             return stream3;
         }
+        #endregion
     }
 }

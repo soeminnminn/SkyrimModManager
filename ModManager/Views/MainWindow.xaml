@@ -10,7 +10,7 @@
         xmlns:toggleSwitch="clr-namespace:ModManager.ToggleSwitch"
         d:DataContext="{d:DesignInstance viewModels:MainViewModel}"
         mc:Ignorable="d"
-        Title="{DynamicResource AppNameString}" 
+        Title="{DynamicResource MainWindowTitleString}" 
         Icon="/Images/skyrimicon.ico"
         WindowStartupLocation="CenterScreen"
         Height="600" Width="750"
@@ -50,6 +50,12 @@
                 <Setter Property="dd:DragDrop.DragSourceIgnore" Value="True" />
             </Style>
 
+            <Style x:Key="DragHandleStyle" TargetType="{x:Type Label}">
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Width" Value="32" />
+                <Setter Property="Cursor" Value="SizeAll" />
+            </Style>
+
             <Style x:Key="ErrorMessage" TargetType="{x:Type TextBlock}">
                 <Setter Property="Foreground" Value="Red" />
                 <Setter Property="FontSize" Value="10" />
@@ -67,10 +73,10 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel Height="24" Width="30" dd:DragDrop.DragSourceIgnore="{Binding IsSystem}" Cursor="SizeAll">
-                            <Path Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    Data="{StaticResource DragIcon}" Width="24" Height="24" Fill="Gray" />
-                        </StackPanel>
+                        <Label dd:DragDrop.DragSourceIgnore="{Binding IsSystem}" Style="{StaticResource DragHandleStyle}">
+                            <Path Visibility="{Binding IsUser, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                  Data="{StaticResource DragIcon}" Width="24" Height="24" Fill="Gray" />
+                        </Label>
                         <StackPanel Grid.Column="1" Orientation="Vertical">
                             <TextBlock Margin="6 0 0 0" VerticalAlignment="Center" Text="{Binding Name}" />
                             <TextBlock Margin="6 0 0 0" Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{Binding ErrorMessage}" Style="{StaticResource ErrorMessage}" />
@@ -86,7 +92,7 @@
                 </Border>
             </DataTemplate>
         </DockPanel.Resources>
-        
+
         <Menu DockPanel.Dock="Top" Name="MainMenu" IsMainMenu="True">
             <MenuItem Header="{DynamicResource FileMenuItemString}">
                 <MenuItem Command="ApplicationCommands.Save" />
@@ -99,6 +105,7 @@
                 <Separator />
                 <MenuItem Name="MenuItemExit" Header="{DynamicResource ExitMenuItemString}" InputGestureText="Ctrl+W" Command="local:RoutedCommands.Exit" />
             </MenuItem>
+            <MenuItem Header="{DynamicResource ToolsMenuItemString}" x:Name="menuTools" Visibility="Collapsed" />
             <MenuItem Header="{DynamicResource HelpMenuItemString}">
                 <MenuItem Name="MenuItemAbout" Header="{DynamicResource AboutMenuItemString}" InputGestureText="F1" Command="local:RoutedCommands.About" />
             </MenuItem>
@@ -125,7 +132,8 @@
                     ItemContainerStyle="{StaticResource ListBoxItemStyle}"
                     ItemTemplate="{StaticResource ListItemTemplate}"
                     ItemsSource="{Binding Data}" 
-                    SelectionChanged="ModsListBox_SelectionChanged">
+                    SelectionChanged="ModsListBox_SelectionChanged" 
+                    d:ItemsSource="{d:SampleData ItemCount=5}">
             </ListBox>
             <GridSplitter Grid.Column="1" Height="Auto" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="Transparent" />
             <Border Grid.Column="2" BorderBrush="LightGray" BorderThickness="1" Margin="0,4,4,4">
@@ -144,7 +152,7 @@
                         <RowDefinition Height="35" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <Label Style="{StaticResource HeaderLabel}">Module Informations</Label>
+                    <Label Style="{StaticResource HeaderLabel}" Content="{DynamicResource ModInfoTitleString}"></Label>
                     <ScrollViewer Grid.Row="1">
                         <StackPanel>
                             <Grid x:Name="layoutInfo" Visibility="Hidden">
@@ -172,22 +180,22 @@
                                     <RowDefinition Height="30" />
                                 </Grid.RowDefinitions>
 
-                                <Label Grid.Row="0" Content="Name" Style="{StaticResource ItemHeader}" />
+                                <Label Grid.Row="0" Content="{DynamicResource ModInfoNameString}" Style="{StaticResource ItemHeader}" />
                                 <TextBlock Grid.Row="0" Grid.Column="1" Name="lblInfoName" />
 
-                                <Label Grid.Row="1" Content="Author" Style="{StaticResource ItemHeader}" />
+                                <Label Grid.Row="1" Content="{DynamicResource ModInfoAuthorString}" Style="{StaticResource ItemHeader}" />
                                 <TextBlock Grid.Row="1" Grid.Column="1" Name="lblInfoAuthor" />
 
-                                <Label Grid.Row="2" Content="Description" Style="{StaticResource ItemHeader}" />
+                                <Label Grid.Row="2" Content="{DynamicResource ModInfoDescriptionString}" Style="{StaticResource ItemHeader}" />
                                 <TextBlock Grid.Row="2" Grid.Column="1" Name="lblInfoDesc" />
 
-                                <Label Grid.Row="3" Content="Record flags" Style="{StaticResource ItemHeader}" />
+                                <Label Grid.Row="3" Content="{DynamicResource ModInfoRecordFlagsString}" Style="{StaticResource ItemHeader}" />
                                 <TextBlock Grid.Row="3" Grid.Column="1" Name="lblInfoFlags" />
 
-                                <Label Grid.Row="4" Content="Master files" Style="{StaticResource ItemHeader}" />
+                                <Label Grid.Row="4" Content="{DynamicResource ModInfoMasterFilesString}" Style="{StaticResource ItemHeader}" />
                                 <TextBlock Grid.Row="4" Grid.Column="1" Name="lblInfoMasters" />
 
-                                <Label Grid.Row="5" Content="Modified Date" Style="{StaticResource ItemHeader}" />
+                                <Label Grid.Row="5" Content="{DynamicResource ModInfoModifiedDateString}" Style="{StaticResource ItemHeader}" />
                                 <TextBlock Grid.Row="5" Grid.Column="1" Name="lblInfoDate" />
                             </Grid>
                         </StackPanel>
@@ -195,6 +203,6 @@
                 </Grid>
             </Border>
         </Grid>
-        
+
     </DockPanel>
 </Window>

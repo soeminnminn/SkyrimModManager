@@ -8,6 +8,7 @@ namespace ModManager.GameModules
 {
     public class SubRecord : IRecord
     {
+        #region Properties
         public GameID GameId { get; }
         public Signature RecordType { get; set; } = Signature.DEFAULT;
         public uint DataSize { get; set; }
@@ -48,7 +49,9 @@ namespace ModManager.GameModules
                 return this.Data;
             }
         }
+        #endregion
 
+        #region Constructors
         public SubRecord(GameID gameId, Signature signature)
         {
             this.GameId = gameId;
@@ -61,7 +64,9 @@ namespace ModManager.GameModules
             this.Compressed = compressed;
             this.Parse(stream, sizeOverride);
         }
+        #endregion
 
+        #region Methods
         internal void Parse(Stream stream, int sizeOverride)
         {
             var reader = new OBinaryReader(stream);
@@ -150,7 +155,8 @@ namespace ModManager.GameModules
                     return list.ToArray();
                 }
             }
-            return new uint[] {};
+            return new uint[0];
         }
+        #endregion
     }
 }
